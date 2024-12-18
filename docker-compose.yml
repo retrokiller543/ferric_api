@@ -1,0 +1,20 @@
+name: tosic.killer
+
+services:
+  ferric-api:
+    build:
+      context: .
+      args:
+        PROFILE: dev
+    networks:
+      - api
+    environment:
+      PORT: 8000
+      RUST_LOG: info
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+networks:
+  api:
+    driver: bridge
