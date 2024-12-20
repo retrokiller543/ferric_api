@@ -1,7 +1,8 @@
 [workspace]
 members = [
     ".",
-    "actix-oauth"
+    "actix-oauth",
+    "actix-oauth-macro"
 ]
 
 [workspace.dependencies]

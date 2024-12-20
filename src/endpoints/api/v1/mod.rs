@@ -6,12 +6,11 @@ use utoipa_rapidoc::RapiDoc;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_scalar::{Scalar, Servable as OtherServable};
 use utoipa_swagger_ui::{Config, SwaggerUi};
-
 #[derive(OpenApi)]
 #[openapi(
+    paths(),
     nest(),
     components(schemas(Error), responses(Error)),
-    paths(),
     tags(),
     modifiers(&AddV1Prefix, &NormalizePath)
 )]

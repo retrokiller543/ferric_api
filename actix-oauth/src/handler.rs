@@ -15,7 +15,7 @@ use utoipa::{IntoResponses, PartialSchema, Path, ToResponse, ToSchema};
 pub type HandlerReturn = Result<TokenResponse, Oauth2ErrorType>;
 pub type HandlerFuture = Pin<Box<dyn Future<Output = HandlerReturn> + Send + 'static>>;
 
-pub(crate) type HandlerField<H> = Box<Arc<H>>;
+pub(crate) type HandlerField<H> = Arc<H>;
 
 pub struct Oauth2Handler {
     password_grant_handler:
@@ -75,7 +75,7 @@ impl Oauth2HandlerBuilder {
         mut self,
         handler: impl Fn(HttpRequest, Username, Password) -> HandlerFuture + 'static,
     ) -> Self {
-        self.password_grant_handler = Some(Box::new(Arc::new(handler)));
+        self.password_grant_handler = Some(Arc::new(handler));
         self
     }
 
@@ -84,7 +84,7 @@ impl Oauth2HandlerBuilder {
         handler: impl Fn(HttpRequest, AuthorizationCode, String, ClientId, ClientSecret) -> HandlerFuture
             + 'static,
     ) -> Self {
-        self.authorization_code_grant_handler = Some(Box::new(Arc::new(handler)));
+        self.authorization_code_grant_handler = Some(Arc::new(handler));
         self
     }
 
@@ -92,7 +92,7 @@ impl Oauth2HandlerBuilder {
         mut self,
         handler: impl Fn(HttpRequest, ClientId, ClientSecret) -> HandlerFuture + 'static,
     ) -> Self {
-        self.client_credentials_grant_handler = Some(Box::new(Arc::new(handler)));
+        self.client_credentials_grant_handler = Some(Arc::new(handler));
         self
     }
 
@@ -101,7 +101,7 @@ impl Oauth2HandlerBuilder {
         handler: impl Fn(HttpRequest, Option<ClientId>, Option<ClientSecret>, RefreshToken) -> HandlerFuture
             + 'static,
     ) -> Self {
-        self.refresh_token_handler = Some(Box::new(Arc::new(handler)));
+        self.refresh_token_handler = Some(Arc::new(handler));
         self
     }
 
@@ -206,6 +206,9 @@ impl Path for __path_Oauth2Handler {
         responses.responses.insert("200".to_string(), token_res);
 
         Operation::builder()
+            .tag("Oauth")
+            .summary(Some("Token"))
+            .description(Some("Endpoint to authenticate using oauth2"))
             .parameter(
                 Parameter::builder()
                     .schema(Some(json_schema))
@@ -224,6 +227,6 @@ impl SchemaReferences for __path_Oauth2Handler {
 
 impl<'a> Tags<'a> for __path_Oauth2Handler {
     fn tags() -> Vec<&'a str> {
-        vec![]
+        vec!["Oauth"]
     }
 }

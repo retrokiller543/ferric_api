@@ -140,11 +140,13 @@ dependencies = [
  "actix-cors",
  "actix-helper-utils",
  "actix-web",
+ "actix_oauth_macro",
  "dotenv",
  "futures",
  "mime",
  "oauth2",
  "once_cell",
+ "pin-project-lite",
  "rand",
  "serde",
  "serde_json",
@@ -286,6 +288,16 @@ version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6ac1e58cded18cb28ddc17143c4dea5345b3ad575e14f32f66e4054a56eb271"
 dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+]
+
+[[package]]
+name = "actix_oauth_macro"
+version = "0.0.0"
+dependencies = [
+ "darling",
  "proc-macro2",
  "quote",
  "syn 2.0.90",

@@ -9,8 +9,9 @@
 //! to `/api/v1/users` and should be treated as such.
 
 use actix_oauth::dto::TokenResponse;
-use actix_oauth::handler::{HandlerFuture, Oauth2HandlerBuilder};
-use actix_oauth::types::{Password, Username};
+use actix_oauth::handler::Oauth2HandlerBuilder;
+use actix_oauth::oauth;
+use actix_oauth::types::{ClientId, ClientSecret, Password, RefreshToken, Username};
 use actix_web::{web, HttpRequest};
 use api::api;
 use tracing::info;
@@ -22,15 +23,22 @@ mod test;
 
 pub(crate) use health::*;
 
-fn password(_req: HttpRequest, _username: Username, _password: Password) -> HandlerFuture {
+#[oauth]
+async fn password(_: HttpRequest, _username: Username, _password: Password) {
     info!("User tries to login");
 
-    Box::pin(async { Ok(TokenResponse::new()) })
+    Ok(TokenResponse::new())
+}
+
+#[oauth]
+async fn refresh(_: HttpRequest, _: Option<ClientId>, _: Option<ClientSecret>, _: RefreshToken) {
+    Ok(TokenResponse::new())
 }
 
 pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {
     let oauth_handler = Oauth2HandlerBuilder::new()
         .password_handler(password)
+        .refresh_handler(refresh)
         .build();
 
     web::scope("")
