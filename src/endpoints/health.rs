@@ -2,9 +2,10 @@ use crate::{error::ApiError, services::health::check_health};
 use actix_helper_utils::generate_endpoint;
 
 generate_endpoint! {
-    /// Basic health endpoint to see if server up and running and working as expected.
+    /// Health Endpoint
     ///
-    /// Add more to the inner service to improve the check.
+    /// Basic health endpoint to see if server up and running and working as expected.
+    // Add more to the inner service to improve the check.
     fn health;
     method: get;
     path: "/health";

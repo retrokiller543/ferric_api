@@ -7,8 +7,13 @@
 //! then we have the file paths `api/v1/users/get.rs` and `api/v1/users/post.rs` and also the third file `api/v1/users/mod.rs` which will
 //! contain a service with the scope for the `users` part of the path, that means that all endpoints under `api/v1/users/` will be relative
 //! to `/api/v1/users` and should be treated as such.
-use actix_web::web;
+
+use actix_oauth::dto::TokenResponse;
+use actix_oauth::handler::{HandlerFuture, Oauth2HandlerBuilder};
+use actix_oauth::types::{Password, Username};
+use actix_web::{web, HttpRequest};
 use api::api;
+use tracing::info;
 
 pub(crate) mod api;
 pub(crate) mod health;
@@ -17,8 +22,19 @@ mod test;
 
 pub(crate) use health::*;
 
+fn password(_req: HttpRequest, _username: Username, _password: Password) -> HandlerFuture {
+    info!("User tries to login");
+
+    Box::pin(async { Ok(TokenResponse::new()) })
+}
+
 pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {
+    let oauth_handler = Oauth2HandlerBuilder::new()
+        .password_handler(password)
+        .build();
+
     web::scope("")
+        .service(oauth_handler)
         .service(health::health)
         .service(api())
         .default_service(web::to(not_found::not_found))

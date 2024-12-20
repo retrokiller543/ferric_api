@@ -4,4 +4,5 @@
 //! and paths not to complex.
 
 pub(crate) mod error;
+
 pub(crate) use error::*;

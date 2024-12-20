@@ -6,6 +6,8 @@ use utoipa::{Modify, OpenApi};
 use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::openapi::OpenApi as OpenApiSpec;
 
+use actix_oauth::OauthAPI;
+
 /// Constructs a new struct that implements [`Modify`] trait for [`utoipa`] documentation.
 ///
 /// This is a not ideal way to do it, but this is the best solution I came up with.
@@ -85,6 +87,7 @@ impl Modify for OpenApiSecurityConfig {
     paths(health),
     nest(
         (path = "/", api = DocsV1),
+        (path = "/", api = OauthAPI)
     ),
     components(schemas(Error), responses(Error)),
     tags(),

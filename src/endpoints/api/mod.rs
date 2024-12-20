@@ -1,5 +1,7 @@
 use crate::openapi::ApiDocs;
-use actix_web::web;
+use crate::BASE_URL;
+use actix_web::{web, HttpResponse, Responder};
+use tracing::warn;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_redoc::{Redoc, Servable};
@@ -30,4 +32,15 @@ fn docs() -> impl actix_web::dev::HttpServiceFactory {
         .service(RapiDoc::new("/api/docs/openapi.json").path("/rapidoc"))
         .service(Scalar::with_url("/scalar", openapi.clone()))
         .service(v1::v1_docs())
+        .default_service(web::to(docs_index))
+}
+
+async fn docs_index() -> impl Responder {
+    warn!("Documentation path not found, redirecting to default docs");
+
+    let url = format!("{}/api/docs/scalar", *BASE_URL);
+
+    HttpResponse::NotFound()
+        .append_header(("Location", url))
+        .finish()
 }

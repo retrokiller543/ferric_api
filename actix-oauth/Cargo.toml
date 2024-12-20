@@ -1,0 +1,31 @@
+[package]
+name = "actix-oauth"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix = { workspace = true }
+actix-web = { workspace = true }
+actix-helper-utils ={ workspace = true }
+actix-cors = { workspace = true }
+dotenv = { workspace = true }
+thiserror = { workspace = true }
+tosic-utils = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-actix-web = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+utoipa-redoc = { workspace = true }
+utoipa-rapidoc = { workspace = true }
+utoipa-scalar = { workspace = true }
+mime = { workspace = true }
+validator = { workspace = true }
+once_cell = { workspace = true }
+oauth2 = { version =  "5.0.0-rc.1", features = ["timing-resistant-secret-traits"] }
+rand = { version = "0.8.5", default-features = false }

@@ -8,4 +8,5 @@ macro_rules! app {
             .wrap($cors)
     };
 }
+
 pub(crate) use app;
