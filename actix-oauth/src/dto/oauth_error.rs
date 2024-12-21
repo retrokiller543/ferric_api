@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::{IntoResponses, ToResponse, ToSchema};
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, ToResponse)]
+#[derive(
+    Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, ToSchema, ToResponse,
+)]
 pub struct Oauth2Error {
     /// A single ASCII string from a predefined set of error codes.
     pub(crate) error: String,

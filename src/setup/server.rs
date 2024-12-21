@@ -6,9 +6,12 @@ macro_rules! server {
 
         actix_web::HttpServer::new(move || {
             let cors = crate::config::cors();
+            let error_handler = actix_web::middleware::ErrorHandlers::new()
+                .default_handler(crate::error::default_error_handler);
 
-            crate::setup::app::app!(state, cors)
+            crate::setup::app::app!(state, cors, error_handler)
         })
     }};
 }
+
 pub(crate) use server;

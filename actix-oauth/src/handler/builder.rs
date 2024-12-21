@@ -1,5 +1,8 @@
-use crate::handler::{HandlerField, HandlerFuture, Oauth2Handler};
-use crate::types::{AuthorizationCode, ClientId, ClientSecret, Password, RefreshToken, Username};
+use crate::dto::AuthorizationRequest;
+use crate::handler::{AuthorizationFuture, HandlerField, HandlerFuture, Oauth2Handler};
+use crate::types::{
+    AuthorizationCode, ClientId, ClientSecret, Password, RedirectUri, RefreshToken, Username,
+};
 use actix_web::HttpRequest;
 use std::sync::Arc;
 
@@ -8,7 +11,13 @@ pub struct Oauth2HandlerBuilder {
         Option<HandlerField<dyn Fn(HttpRequest, Username, Password) -> HandlerFuture>>,
     authorization_code_grant_handler: Option<
         HandlerField<
-            dyn Fn(HttpRequest, AuthorizationCode, String, ClientId, ClientSecret) -> HandlerFuture,
+            dyn Fn(
+                HttpRequest,
+                AuthorizationCode,
+                RedirectUri,
+                ClientId,
+                ClientSecret,
+            ) -> HandlerFuture,
         >,
     >,
     client_credentials_grant_handler:
@@ -23,6 +32,9 @@ pub struct Oauth2HandlerBuilder {
             ) -> HandlerFuture,
         >,
     >,
+
+    authorization_handler:
+        Option<HandlerField<dyn Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture>>,
 }
 
 impl Oauth2HandlerBuilder {
@@ -32,6 +44,7 @@ impl Oauth2HandlerBuilder {
             authorization_code_grant_handler: None,
             client_credentials_grant_handler: None,
             refresh_token_handler: None,
+            authorization_handler: None,
         }
     }
 
@@ -45,10 +58,19 @@ impl Oauth2HandlerBuilder {
 
     pub fn authorization_code_handler(
         mut self,
-        handler: impl Fn(HttpRequest, AuthorizationCode, String, ClientId, ClientSecret) -> HandlerFuture
+        handler: impl Fn(HttpRequest, AuthorizationCode, RedirectUri, ClientId, ClientSecret) -> HandlerFuture
             + 'static,
     ) -> Self {
         self.authorization_code_grant_handler = Some(Arc::new(handler));
+        self
+    }
+
+    pub fn authorization_handler(
+        mut self,
+        handler: impl Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture + 'static,
+    ) -> Self {
+        self.authorization_handler = Some(Arc::new(handler));
+
         self
     }
 
@@ -75,6 +97,7 @@ impl Oauth2HandlerBuilder {
             authorization_code_grant_handler: self.authorization_code_grant_handler,
             client_credentials_grant_handler: self.client_credentials_grant_handler,
             refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: self.authorization_handler,
         }
     }
 }

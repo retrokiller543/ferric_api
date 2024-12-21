@@ -1,12 +1,20 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
 use utoipa::openapi::{KnownFormat, RefOr, Required, Schema, SchemaFormat};
 use utoipa::{openapi, IntoParams, PartialSchema, ToSchema};
 
 wrap_external_type! {
-    #[derive(Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+    #[derive(Clone, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
     pub struct Password(String);
+}
+
+impl Debug for Password {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "Password([redacted])")
+    }
 }
 
 impl PartialSchema for Password {
@@ -16,6 +24,7 @@ impl PartialSchema for Password {
             .format(Some(SchemaFormat::KnownFormat(KnownFormat::Password)))
             .title("User password".into())
             .description(Some("Password used to log user in"))
+            .examples(["superSecretePassword", "somePassword"])
             .into()
     }
 }
@@ -31,6 +40,7 @@ impl IntoParams for Password {
             .required(Required::True)
             .schema(Some(Self::schema()))
             .description(Some("User Password"))
+            .example(Some(Value::String(String::from("somePassword"))))
             .build();
 
         vec![param]

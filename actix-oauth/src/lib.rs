@@ -8,10 +8,8 @@ mod traits;
 pub mod types;
 
 pub use actix_oauth_macro::oauth;
-use dto::{Oauth2Error, OauthRequest, TokenResponse, TokenType};
-use types::{
-    AccessToken, AuthorizationCode, ClientId, ClientSecret, Password, RefreshToken, Username,
-};
+use dto::*;
+use types::*;
 use utoipa::openapi::OpenApi as OpenApiSpec;
 
 struct NormalizePath;
@@ -33,7 +31,7 @@ impl Modify for NormalizePath {
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(handler::docs::token),
+    paths(handler::docs::token, handler::docs::authorize),
     components(
         schemas(
             RefreshToken,
@@ -46,7 +44,12 @@ impl Modify for NormalizePath {
             OauthRequest,
             TokenResponse,
             Oauth2Error,
-            TokenType
+            TokenType,
+            RedirectUri,
+            Scope,
+            Scopes,
+            AuthorizationRequest,
+            ResponseType
         ),
         responses(TokenResponse)
     ),

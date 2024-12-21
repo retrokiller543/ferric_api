@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
@@ -7,31 +6,36 @@ use utoipa::openapi::{KnownFormat, RefOr, Required, Schema, SchemaFormat};
 use utoipa::{openapi, IntoParams, PartialSchema, ToSchema};
 
 wrap_external_type! {
-    #[derive(Clone, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-    pub struct Username(String);
+    #[derive(Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
+    pub struct RedirectUri(oauth2::RedirectUrl);
 }
 
-impl Debug for Username {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        write!(f, "Username([redacted])")
+impl Debug for RedirectUri {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
     }
 }
 
-impl PartialSchema for Username {
+impl PartialSchema for RedirectUri {
     fn schema() -> RefOr<Schema> {
         openapi::schema::ObjectBuilder::new()
             .schema_type(openapi::schema::Type::String)
-            .format(Some(SchemaFormat::KnownFormat(KnownFormat::Password)))
-            .title("Username".into())
-            .description(Some("Username used to login"))
-            .examples(["john-doe", "john.doe@example.com"])
+            .format(Some(SchemaFormat::KnownFormat(KnownFormat::UriTemplate)))
+            .title("Redirect URI".into())
+            .description(Some(
+                "URI that the server will redirect to after authentication is completed",
+            ))
+            .examples([
+                "https://client.example.com/callback",
+                "http://localhost/redirect",
+            ])
             .into()
     }
 }
 
-impl ToSchema for Username {}
+impl ToSchema for RedirectUri {}
 
-impl IntoParams for Username {
+impl IntoParams for RedirectUri {
     fn into_params(parameter_in_provider: impl Fn() -> Option<ParameterIn>) -> Vec<Parameter> {
         let parameter_in = parameter_in_provider().unwrap_or_default();
 
@@ -39,8 +43,7 @@ impl IntoParams for Username {
             .parameter_in(parameter_in)
             .required(Required::True)
             .schema(Some(Self::schema()))
-            .description(Some("Username used to login"))
-            .example(Some(Value::String(String::from("john-doe"))))
+            .description(Some("Redirect URI to use"))
             .build();
 
         vec![param]

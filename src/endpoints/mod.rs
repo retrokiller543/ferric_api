@@ -9,6 +9,7 @@
 //! to `/api/v1/users` and should be treated as such.
 
 use actix_oauth::dto::TokenResponse;
+use actix_oauth::error::Oauth2ErrorType;
 use actix_oauth::handler::builder::Oauth2HandlerBuilder;
 use actix_oauth::oauth;
 use actix_oauth::types::{ClientId, ClientSecret, Password, RefreshToken, Username};
@@ -24,6 +25,7 @@ mod test;
 pub(crate) use health::*;
 
 #[oauth]
+#[tracing::instrument]
 async fn password(_: HttpRequest, _username: Username, _password: Password) {
     info!("User tries to login");
 
@@ -31,8 +33,9 @@ async fn password(_: HttpRequest, _username: Username, _password: Password) {
 }
 
 #[oauth]
+#[tracing::instrument]
 async fn refresh(_: HttpRequest, _: Option<ClientId>, _: Option<ClientSecret>, _: RefreshToken) {
-    Ok(TokenResponse::new())
+    Err(Oauth2ErrorType::UnauthorizedClient)
 }
 
 pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {

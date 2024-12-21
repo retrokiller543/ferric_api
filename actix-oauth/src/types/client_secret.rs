@@ -1,12 +1,19 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
 use utoipa::openapi::{RefOr, Required, Schema};
 use utoipa::{openapi, IntoParams, PartialSchema, ToSchema};
 
 wrap_external_type! {
-    #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+    #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
     pub struct ClientSecret(oauth2::ClientSecret);
+}
+
+impl Debug for ClientSecret {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
 }
 
 impl ClientSecret {

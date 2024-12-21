@@ -1,12 +1,19 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
 use utoipa::openapi::{RefOr, Required, Schema};
 use utoipa::{openapi, IntoParams, PartialSchema, ToSchema};
 
 wrap_external_type! {
-    #[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
     pub struct AuthorizationCode(oauth2::AuthorizationCode);
+}
+
+impl Debug for AuthorizationCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
 }
 
 impl PartialSchema for AuthorizationCode {

@@ -3,19 +3,23 @@ pub use builder::*;
 pub(crate) mod docs;
 
 use crate::dto::token_response::TokenResponse;
-use crate::dto::OauthRequest;
+use crate::dto::{AuthorizationRequest, OauthRequest};
 use crate::error::Oauth2ErrorType;
-use crate::types::{AuthorizationCode, ClientId, ClientSecret, Password, RefreshToken, Username};
+use crate::types::{
+    AuthorizationCode, ClientId, ClientSecret, Password, RedirectUri, RefreshToken, Username,
+};
 use actix_web::dev::{AppService, HttpServiceFactory};
 use actix_web::web::post;
-use actix_web::{web, HttpRequest};
+use actix_web::{web, HttpRequest, HttpResponse};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use tracing::instrument;
 
 pub type HandlerReturn = Result<TokenResponse, Oauth2ErrorType>;
+pub type AuthorizationReturn = Result<HttpResponse, Oauth2ErrorType>;
 pub type HandlerFuture = Pin<Box<dyn Future<Output = HandlerReturn> + Send + 'static>>;
+pub type AuthorizationFuture = Pin<Box<dyn Future<Output = AuthorizationReturn> + Send + 'static>>;
 
 pub(crate) type HandlerField<H> = Arc<H>;
 
@@ -25,7 +29,13 @@ pub struct Oauth2Handler {
         Option<HandlerField<dyn Fn(HttpRequest, Username, Password) -> HandlerFuture>>,
     authorization_code_grant_handler: Option<
         HandlerField<
-            dyn Fn(HttpRequest, AuthorizationCode, String, ClientId, ClientSecret) -> HandlerFuture,
+            dyn Fn(
+                HttpRequest,
+                AuthorizationCode,
+                RedirectUri,
+                ClientId,
+                ClientSecret,
+            ) -> HandlerFuture,
         >,
     >,
     client_credentials_grant_handler:
@@ -40,6 +50,9 @@ pub struct Oauth2Handler {
             ) -> HandlerFuture,
         >,
     >,
+
+    authorization_handler:
+        Option<HandlerField<dyn Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture>>,
 }
 
 impl Oauth2Handler {
@@ -60,12 +73,12 @@ impl Oauth2Handler {
             }
             OauthRequest::AuthorizationCode {
                 code,
-                redirect_url,
+                redirect_uri,
                 client_id,
                 client_secret,
             } => {
                 if let Some(method) = authorization_code_handler {
-                    method(req, code, redirect_url, client_id, client_secret).await
+                    method(req, code, redirect_uri, client_id, client_secret).await
                 } else {
                     Err(Oauth2ErrorType::UnsupportedGrantType)
                 }
@@ -99,7 +112,7 @@ impl HttpServiceFactory for Oauth2Handler {
     fn register(self, config: &mut AppService) {
         let handler = Arc::new(self);
 
-        let handler_closure = {
+        let token_handler = {
             let handler = Arc::clone(&handler);
 
             move |req: HttpRequest,
@@ -119,7 +132,24 @@ impl HttpServiceFactory for Oauth2Handler {
             }
         };
 
-        let scope = web::scope("/oauth").route("/token", post().to(handler_closure));
+        let authorization_handler_inner = handler.authorization_handler.clone();
+        let authorization_handler =
+            move |req: HttpRequest,
+                  web::Query(authorization_request): web::Query<AuthorizationRequest>| {
+                let authorization_handler_inner = authorization_handler_inner.clone();
+
+                async move {
+                    if let Some(handler) = authorization_handler_inner {
+                        handler(req, authorization_request).await
+                    } else {
+                        Err(Oauth2ErrorType::UnsupportedGrantType)
+                    }
+                }
+            };
+
+        let scope = web::scope("/oauth")
+            .route("/token", post().to(token_handler))
+            .route("/authorize", post().to(authorization_handler));
 
         HttpServiceFactory::register(scope, config);
     }

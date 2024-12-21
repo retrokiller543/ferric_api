@@ -3,6 +3,7 @@ use actix_web::body::BoxBody;
 use actix_web::http::{header, StatusCode};
 use actix_web::{HttpResponse, ResponseError};
 use thiserror::Error;
+use tracing::error;
 
 #[derive(Error, Debug)]
 pub enum Oauth2ErrorType {
@@ -60,6 +61,8 @@ impl ResponseError for Oauth2ErrorType {
             error: self.to_string(),
             error_description: self.get_description(),
         };
+
+        error!("Error occurred when handling OAuth request: {oauth_error:?}");
 
         let json = serde_json::to_string(&oauth_error).unwrap_or_else(|_| "{\"error\":\"server_error\",\"error_description\":\"An internal server error occurred.\"}".to_string());
 

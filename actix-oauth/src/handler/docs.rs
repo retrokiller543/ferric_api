@@ -1,4 +1,4 @@
-use crate::dto::{Oauth2ErrorResponses, OauthRequest, TokenResponse};
+use crate::dto::{AuthorizationRequest, Oauth2ErrorResponses, OauthRequest, TokenResponse};
 
 /// Exchange credentials for an access token.
 ///
@@ -21,3 +21,16 @@ use crate::dto::{Oauth2ErrorResponses, OauthRequest, TokenResponse};
 )]
 #[allow(dead_code)]
 fn token() {}
+
+#[utoipa::path(
+    post,
+    path = "/oauth/authorize",
+    tags = ["OAuth", "Auth"],
+    params(AuthorizationRequest),
+    responses(
+        Oauth2ErrorResponses,
+        (status = 304, description = "Returns the code in the query params")
+    )
+)]
+#[allow(dead_code)]
+fn authorize() {}

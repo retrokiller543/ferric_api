@@ -1,4 +1,6 @@
-use crate::types::{AuthorizationCode, ClientId, ClientSecret, Password, RefreshToken, Username};
+use crate::types::{
+    AuthorizationCode, ClientId, ClientSecret, Password, RedirectUri, RefreshToken, Username,
+};
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_json::json;
@@ -9,41 +11,23 @@ use utoipa::{IntoParams, ToResponse, ToSchema};
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, ToSchema, ToResponse)]
 #[serde(tag = "grant_type", rename_all = "snake_case")]
 pub enum OauthRequest {
-    #[schema(example = json!({
-        "grant_type": "password",
-        "username": "john-doe",
-        "password": "password"
-    }))]
     Password {
+        #[schema(example = "john-doe")]
         username: Username,
+        #[schema(example = "superSecretePassword")]
         password: Password,
     },
-    #[schema(example = json!({
-        "grant_type": "authorization_code",
-        "code": "abc",
-        "redirect_url": "http://localhost/redirect",
-        "client_id": "client_id",
-        "client_secret": "client-secret"
-    }))]
     AuthorizationCode {
         code: AuthorizationCode,
-        redirect_url: String,
+        #[schema(example = "http://localhost/redirect")]
+        redirect_uri: RedirectUri,
         client_id: ClientId,
         client_secret: ClientSecret,
     },
-    #[schema(example = json!({
-        "grant_type": "client_credentials",
-        "client_id": "client_id",
-        "client_secret": "client-secret"
-    }))]
     ClientCredentials {
         client_id: ClientId,
         client_secret: ClientSecret,
     },
-    #[schema(example = json!({
-        "grant_type": "refresh_token",
-        "refresh_token": "token"
-    }))]
     RefreshToken {
         client_id: Option<ClientId>,
         client_secret: Option<ClientSecret>,
