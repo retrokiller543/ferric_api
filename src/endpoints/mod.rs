@@ -9,7 +9,7 @@
 //! to `/api/v1/users` and should be treated as such.
 
 use actix_oauth::dto::TokenResponse;
-use actix_oauth::handler::Oauth2HandlerBuilder;
+use actix_oauth::handler::builder::Oauth2HandlerBuilder;
 use actix_oauth::oauth;
 use actix_oauth::types::{ClientId, ClientSecret, Password, RefreshToken, Username};
 use actix_web::{web, HttpRequest};

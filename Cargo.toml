@@ -8,7 +8,8 @@ members = [
 [workspace.dependencies]
 actix = "0.13.5"
 actix-web = "4.9"
-actix-helper-utils ={ version = "0.0.1-alpha", registry = "gitea"}
+# actix-helper-utils ={ version = "0.0.1-alpha", registry = "gitea"}
+actix-helper-utils ={ git = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git" }
 actix-cors = "0.7.0"
 actix-oauth = { version = "0.1.0", path = "actix-oauth" }
 dotenv = "0.15.0"

@@ -33,7 +33,7 @@ impl Modify for NormalizePath {
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(handler::Oauth2Handler),
+    paths(handler::docs::token),
     components(
         schemas(
             RefreshToken,
@@ -48,10 +48,11 @@ impl Modify for NormalizePath {
             Oauth2Error,
             TokenType
         ),
-        responses()
+        responses(TokenResponse)
     ),
     tags(
-        (name = "Oauth", description = "Oauth2 related endpoints")
+        (name = "OAuth", description = "Oauth2 related endpoints"),
+        (name = "Auth", description = "Authentication related endpoints")
     ),
     modifiers(&NormalizePath)
 )]
