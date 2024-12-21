@@ -62,7 +62,7 @@ dependencies = [
 [[package]]
 name = "actix-helper-utils"
 version = "0.0.1-alpha"
-source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git#43855221649590677ce1435e2002342516b05cb9"
+source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git#16b70fa000510942e9b50eab377bca74839b1cfc"
 dependencies = [
  "actix-helper-utils-macros",
  "actix-web",
@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "actix-helper-utils-macros"
 version = "0.0.1-alpha"
-source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git#43855221649590677ce1435e2002342516b05cb9"
+source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git#16b70fa000510942e9b50eab377bca74839b1cfc"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
