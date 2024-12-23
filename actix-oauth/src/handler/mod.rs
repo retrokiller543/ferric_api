@@ -16,10 +16,11 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tracing::instrument;
 
+pub type OAuthFuture<T> = Pin<Box<dyn Future<Output = T> + Send + 'static>>;
 pub type HandlerReturn = Result<TokenResponse, Oauth2ErrorType>;
 pub type AuthorizationReturn = Result<HttpResponse, Oauth2ErrorType>;
-pub type HandlerFuture = Pin<Box<dyn Future<Output = HandlerReturn> + Send + 'static>>;
-pub type AuthorizationFuture = Pin<Box<dyn Future<Output = AuthorizationReturn> + Send + 'static>>;
+pub type HandlerFuture = OAuthFuture<HandlerReturn>;
+pub type AuthorizationFuture = OAuthFuture<AuthorizationReturn>;
 
 pub(crate) type HandlerField<H> = Arc<H>;
 

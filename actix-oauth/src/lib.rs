@@ -6,6 +6,7 @@ pub mod error;
 pub mod handler;
 mod traits;
 pub mod types;
+mod utils;
 
 pub use actix_oauth_macro::oauth;
 use dto::*;
@@ -49,7 +50,10 @@ impl Modify for NormalizePath {
             Scope,
             Scopes,
             AuthorizationRequest,
-            ResponseType
+            ResponseType,
+            OAuthClientDTO,
+            OAuthCreateClientDTO,
+            OAuthUpdateClientDTO
         ),
         responses(TokenResponse)
     ),

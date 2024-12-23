@@ -21,6 +21,8 @@ pub(crate) enum ApiError {
     Basic(String),
     #[error(transparent)]
     Validation(#[from] ValidationErrors),
+    #[error("Database error occurred")]
+    Postgres(#[from] sqlx::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error>),
 }
@@ -37,6 +39,8 @@ pub(crate) enum ServerError {
     Api(#[from] ApiError),
     #[error(transparent)]
     SetGlobalDefault(#[from] SetGlobalDefaultError),
+    #[error(transparent)]
+    Postgres(#[from] sqlx::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error>),
 }
@@ -89,7 +93,8 @@ pub(crate) fn default_error_handler<B: MessageBody + 'static>(
         .get(header::CONTENT_TYPE)
         .and_then(|h| h.to_str().ok());
 
-    if matches!(content_type, Some(ct) if ct == mime::APPLICATION_JSON.as_ref()) {
+    if matches!(content_type, Some(ct) if ct == mime::APPLICATION_JSON.as_ref() || ct == mime::TEXT_HTML_UTF_8.as_ref())
+    {
         // If content type is already JSON, return the original response
         let orig_res = ServiceResponse::new(req, res)
             .map_into_boxed_body()

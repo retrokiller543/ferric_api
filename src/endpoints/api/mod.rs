@@ -11,6 +11,7 @@ use utoipa_swagger_ui::{Config, SwaggerUi};
 pub(crate) mod v1;
 
 /// All API endpoints
+#[inline]
 pub(crate) fn api() -> impl actix_web::dev::HttpServiceFactory {
     web::scope("/api")
         .service(v1::v1_endpoints())
@@ -18,6 +19,7 @@ pub(crate) fn api() -> impl actix_web::dev::HttpServiceFactory {
 }
 
 /// Only real reason we have this is to be able to put scoped middlewares for the docs, for example we can add auth middleware to secure the docs
+#[inline]
 fn docs() -> impl actix_web::dev::HttpServiceFactory {
     let openapi = ApiDocs::openapi();
     let config = Config::from("/api/docs/openapi.json");

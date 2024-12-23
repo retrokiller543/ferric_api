@@ -10,6 +10,12 @@ wrap_external_type! {
     pub struct RedirectUri(oauth2::RedirectUrl);
 }
 
+impl RedirectUri {
+    pub fn new(url: impl Into<String>) -> Self {
+        Self(oauth2::RedirectUrl::new(url.into()).expect("Failed to parse URL"))
+    }
+}
+
 impl Debug for RedirectUri {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)

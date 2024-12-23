@@ -2,6 +2,7 @@
 //! app and server so that we can more simply run the app in tests in the same way we run the app in production
 
 pub(crate) mod app;
+pub(crate) mod database;
 pub(crate) mod server;
 
 pub(crate) use server::*;

@@ -15,7 +15,15 @@ pub(crate) fn oauth_function_inner(
 
     let mut signature = input.sig.clone();
     signature.asyncness = None;
-    signature.output = ReturnType::Default;
+
+    if let ReturnType::Type(_, ref mut ty) = signature.output {
+        *ty = syn::parse_quote! { ::actix_oauth::handler::OAuthFuture<#ty> };
+    } else {
+        signature.output = ReturnType::Type(
+            syn::token::RArrow::default(),
+            Box::new(syn::parse_quote! { ::actix_oauth::handler::OAuthFuture<()> }),
+        );
+    }
 
     let content = input.block;
     let vis = input.vis;
@@ -23,7 +31,7 @@ pub(crate) fn oauth_function_inner(
 
     let expanded = quote! {
         #(#attrs)*
-        #vis #signature -> ::actix_oauth::handler::HandlerFuture {
+        #vis #signature {
             Box::pin(async #content)
         }
     };

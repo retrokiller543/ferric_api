@@ -8,45 +8,27 @@
 //! contain a service with the scope for the `users` part of the path, that means that all endpoints under `api/v1/users/` will be relative
 //! to `/api/v1/users` and should be treated as such.
 
-use actix_oauth::dto::TokenResponse;
-use actix_oauth::error::Oauth2ErrorType;
 use actix_oauth::handler::builder::Oauth2HandlerBuilder;
-use actix_oauth::oauth;
-use actix_oauth::types::{ClientId, ClientSecret, Password, RefreshToken, Username};
-use actix_web::{web, HttpRequest};
+use actix_web::web;
 use api::api;
-use tracing::info;
 
 pub(crate) mod api;
 pub(crate) mod health;
 mod not_found;
+mod oauth;
 mod test;
 
+use crate::endpoints::oauth::oauth_inners;
 pub(crate) use health::*;
 
-#[oauth]
-#[tracing::instrument]
-async fn password(_: HttpRequest, _username: Username, _password: Password) {
-    info!("User tries to login");
-
-    Ok(TokenResponse::new())
-}
-
-#[oauth]
-#[tracing::instrument]
-async fn refresh(_: HttpRequest, _: Option<ClientId>, _: Option<ClientSecret>, _: RefreshToken) {
-    Err(Oauth2ErrorType::UnauthorizedClient)
-}
-
+#[inline]
 pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {
-    let oauth_handler = Oauth2HandlerBuilder::new()
-        .password_handler(password)
-        .refresh_handler(refresh)
-        .build();
+    let oauth_handler = Oauth2HandlerBuilder::new().build();
 
     web::scope("")
-        .service(oauth_handler)
+        //.service(oauth_handler)
         .service(health::health)
+        .service(oauth_inners())
         .service(api())
         .default_service(web::to(not_found::not_found))
 }

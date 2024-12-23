@@ -5,7 +5,7 @@ use std::fmt::Display;
 use std::ops::{Deref, DerefMut};
 use utoipa::openapi::{RefOr, Schema};
 use utoipa::{openapi, PartialSchema, ToSchema};
-#[derive(Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub struct Scopes(Vec<String>);
 
 impl Scopes {

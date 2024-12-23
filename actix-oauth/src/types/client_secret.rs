@@ -1,3 +1,4 @@
+use crate::utils::random_string;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
@@ -17,8 +18,12 @@ impl Debug for ClientSecret {
 }
 
 impl ClientSecret {
-    pub fn new(secret: oauth2::ClientSecret) -> Self {
-        Self(secret)
+    pub fn new(secret: impl Into<String>) -> Self {
+        Self(oauth2::ClientSecret::new(secret.into()))
+    }
+
+    pub fn new_random() -> Self {
+        Self::new(random_string(255))
     }
 }
 

@@ -28,6 +28,8 @@ mime = { workspace = true }
 validator = { workspace = true }
 once_cell = { workspace = true }
 oauth2 = { version =  "5.0.0-rc.1", features = ["timing-resistant-secret-traits"] }
-rand = { version = "0.8.5", default-features = false }
+rand = { version = "0.8.5" }
 pin-project-lite = "0.2.15"
 actix_oauth_macro = { path = "../actix-oauth-macro" }
+sqlx = { workspace = true }
+chrono = { workspace = true }

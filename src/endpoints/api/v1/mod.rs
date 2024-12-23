@@ -1,4 +1,4 @@
-use crate::dto::Error;
+use crate::dto::*;
 use crate::openapi::{AddV1Prefix, NormalizePath};
 use actix_web::web;
 use utoipa::OpenApi;
@@ -18,11 +18,13 @@ use utoipa_swagger_ui::{Config, SwaggerUi};
 pub struct DocsV1;
 
 /// All v1 API endpoints
+#[inline]
 pub(crate) fn v1_endpoints() -> impl actix_web::dev::HttpServiceFactory {
     web::scope("/v1")
 }
 
 /// Documentation for only the v1 API. This does not include the docs for non `/api/v1` endpoints as that is done in `docs`
+#[inline]
 pub(crate) fn v1_docs() -> impl actix_web::dev::HttpServiceFactory {
     let openapi = DocsV1::openapi();
     let config = Config::from("/api/docs/v1/openapi.json");

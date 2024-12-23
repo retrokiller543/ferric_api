@@ -1,8 +1,7 @@
 use crate::types::{AccessToken, RefreshToken};
+use crate::utils;
 use actix_web::body::BoxBody;
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use rand::distributions::{Alphanumeric, DistString};
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use utoipa::{ToResponse, ToSchema};
 
@@ -36,16 +35,11 @@ pub enum TokenResponseExample {
     Success(#[content("application/json")] TokenResponse),
 }
 
-/// Returns a random alphanumeric string of length `length`.
-fn random_string(length: usize) -> String {
-    Alphanumeric.sample_string(&mut thread_rng(), length)
-}
-
 impl TokenResponse {
     pub fn new() -> Self {
         Self {
-            access_token: AccessToken::new(random_string(50)),
-            refresh_token: RefreshToken::new(random_string(50)),
+            access_token: AccessToken::new(utils::random_string(50)),
+            refresh_token: RefreshToken::new(utils::random_string(50)),
             token_type: TokenType::default(),
             expires_in: 3600,
         }

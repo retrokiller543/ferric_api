@@ -8,6 +8,23 @@ macro_rules! app {
             .service(crate::endpoints::index_scope())
             .wrap($cors)
     };
+
+    (
+        $(state: [$($state_ident:expr),* $(,)?];)?
+        $(service: [$($service_ident:expr),* $(,)?];)?
+        $(wrap: [$($wrap_ident:expr),* $(,)?];)?
+    ) => {{
+        ::actix_web::App::new()
+        $(
+            $(.app_data($state_ident.clone()))*
+        )?
+        $(
+            $(.service($service_ident))*
+        )?
+        $(
+            $(.wrap($wrap_ident))*
+        )?
+    }};
 }
 
 pub(crate) use app;

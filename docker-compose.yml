@@ -1,5 +1,3 @@
-name: tosic.killer
-
 services:
   ferric-api:
     build:
@@ -8,13 +6,39 @@ services:
         PROFILE: dev
     networks:
       - api
+      - db
     environment:
       PORT: 8000
       RUST_LOG: info
+      DATABASE_URL: "postgres://postgres:root@db:5432/tosic_db"
     ports:
       - "8000:8000"
     restart: unless-stopped
 
+  db:
+    image: postgres
+    restart: unless-stopped
+    shm_size: 256mb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - db
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 6969:8080
+    networks:
+      - db
+
 networks:
   api:
+    driver: bridge
+  db:
     driver: bridge
