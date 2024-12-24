@@ -1,4 +1,7 @@
+use actix_oauth::impl_responder;
 use serde::{Deserialize, Serialize};
+#[allow(unused_imports)]
+use serde_json::json;
 use std::borrow::Cow;
 use utoipa::{ToResponse, ToSchema};
 
@@ -17,10 +20,15 @@ use utoipa::{ToResponse, ToSchema};
 )]
 pub(crate) struct Error<'a> {
     /// The error message we got.
+    #[serde(skip_serializing_if = "crate::utils::cow_is_empty")]
     pub(crate) error: Cow<'a, str>,
     /// Status code in a human-readable format.
+    #[serde(skip_serializing_if = "crate::utils::cow_is_empty")]
     pub(crate) code: Cow<'a, str>,
-    #[cfg(debug_assertions)]
     /// Stacktrace of the request after the error occurred.
+    #[cfg(debug_assertions)]
+    #[serde(skip_serializing_if = "crate::utils::cow_is_empty")]
     pub(crate) stack_trace: Cow<'a, str>,
 }
+
+impl_responder!(Error<'a>);

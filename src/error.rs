@@ -23,6 +23,8 @@ pub(crate) enum ApiError {
     Validation(#[from] ValidationErrors),
     #[error("Database error occurred")]
     Postgres(#[from] sqlx::Error),
+    #[error("Failed to hash password")]
+    Argon2(#[from] argon2::password_hash::errors::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error>),
 }

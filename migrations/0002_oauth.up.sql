@@ -9,7 +9,7 @@ CREATE TABLE oauth_client (
     redirect_uri TEXT NOT NULL,
     grant_types grant_type[] NOT NULL,
     scopes TEXT[] NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table to store authorization codes

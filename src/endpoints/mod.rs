@@ -8,27 +8,24 @@
 //! contain a service with the scope for the `users` part of the path, that means that all endpoints under `api/v1/users/` will be relative
 //! to `/api/v1/users` and should be treated as such.
 
-use actix_oauth::handler::builder::Oauth2HandlerBuilder;
+use actix_oauth::handler::OAuth2HandlerBuilder;
 use actix_web::web;
 use api::api;
 
 pub(crate) mod api;
 pub(crate) mod health;
 mod not_found;
-mod oauth;
 mod test;
 
-use crate::endpoints::oauth::oauth_inners;
 pub(crate) use health::*;
 
 #[inline]
 pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {
-    let oauth_handler = Oauth2HandlerBuilder::new().build();
+    let oauth_handler = OAuth2HandlerBuilder::new().build();
 
     web::scope("")
-        //.service(oauth_handler)
+        .service(oauth_handler)
         .service(health::health)
-        .service(oauth_inners())
         .service(api())
         .default_service(web::to(not_found::not_found))
 }

@@ -8,7 +8,7 @@ actix = { workspace = true }
 actix-web = { workspace = true }
 actix-helper-utils ={ workspace = true }
 actix-cors = { workspace = true }
-dotenv = { workspace = true }
+dotenvy = { workspace = true }
 thiserror = { workspace = true }
 tosic-utils = { workspace = true }
 tokio = { workspace = true }

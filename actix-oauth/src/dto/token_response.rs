@@ -1,7 +1,5 @@
 use crate::types::{AccessToken, RefreshToken};
-use crate::utils;
-use actix_web::body::BoxBody;
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::{impl_responder, utils};
 use serde::{Deserialize, Serialize};
 use utoipa::{ToResponse, ToSchema};
 
@@ -12,6 +10,8 @@ pub struct TokenResponse {
     token_type: TokenType,
     expires_in: usize,
 }
+
+impl_responder!(TokenResponse);
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Default, ToResponse)]
 #[serde(rename_all = "lowercase")]
@@ -43,13 +43,5 @@ impl TokenResponse {
             token_type: TokenType::default(),
             expires_in: 3600,
         }
-    }
-}
-
-impl Responder for TokenResponse {
-    type Body = BoxBody;
-
-    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
-        HttpResponse::Ok().json(self)
     }
 }

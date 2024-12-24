@@ -1,6 +1,6 @@
 use crate::error::ServerError;
 use crate::ServerResult;
-use dotenv::{dotenv, from_filename};
+use dotenvy::{dotenv, from_filename};
 
 /// Init the environment variables
 ///

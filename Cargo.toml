@@ -10,11 +10,13 @@ actix = "0.13.5"
 actix-web = "4.9"
 # actix-helper-utils ={ version = "0.0.1-alpha", registry = "gitea"}
 actix-helper-utils ={ git = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git" }
+# actix-helper-utils ={ path = "../actix-utils" }
 actix-cors = "0.7.0"
 actix-oauth = { version = "0.1.0", path = "actix-oauth" }
-dotenv = "0.15.0"
+dotenvy = "0.15.0"
 thiserror = "2.0.7"
-tosic-utils = { version = "0.2.0", features = ["env", "dotenv"], registry = "gitea" }
+tosic-utils = { version = "0.2.3", features = ["env", "dotenv", "tracing"], registry = "gitea" }
+# tosic-utils = { version = "0.2.3", features = ["env", "dotenv", "tracing"], path = "../tosic-utils"  }
 tokio = { version = "1.42", features = ["full", "macros", "rt-multi-thread", "tracing"] }
 tracing = { version = "0.1.41", features = ["log"] }
 tracing-actix-web = "0.7.15"
@@ -49,7 +51,7 @@ actix-web = { workspace = true }
 actix-helper-utils ={ workspace = true }
 actix-cors = { workspace = true }
 actix-oauth = { workspace = true }
-dotenv = { workspace = true }
+dotenvy = { workspace = true }
 thiserror = { workspace = true }
 tosic-utils = { workspace = true }
 tokio = { workspace = true }
@@ -70,6 +72,17 @@ validator = { workspace = true }
 once_cell = { workspace = true }
 sqlx = { workspace = true }
 chrono = { workspace = true }
+tracing-appender = "0.2.3"
+constcat = "0.5.1"
+uuid = { version = "1.11.0", features = ["v4", "serde"] }
+argon2 = { version =  "0.5.3", features = ["std"] }
+
+[build-dependencies]
+sqlx = { workspace = true }
+tokio = { workspace = true }
+dotenvy = { workspace = true }
+tosic-utils = { workspace = true }
+tracing = { workspace = true }
 
 [features]
 default = ["local"]

@@ -1,4 +1,6 @@
 use crate::dto::*;
+use crate::endpoints::api::v1::oauth::oauth_inners;
+use crate::endpoints::api::v1::users::users_service;
 use crate::openapi::{AddV1Prefix, NormalizePath};
 use actix_web::web;
 use utoipa::OpenApi;
@@ -7,9 +9,12 @@ use utoipa_redoc::{Redoc, Servable};
 use utoipa_scalar::{Scalar, Servable as OtherServable};
 use utoipa_swagger_ui::{Config, SwaggerUi};
 
+pub mod oauth;
+mod users;
+
 #[derive(OpenApi)]
 #[openapi(
-    paths(),
+    paths(oauth::client::register),
     nest(),
     components(schemas(Error), responses(Error)),
     tags(),
@@ -21,6 +26,8 @@ pub struct DocsV1;
 #[inline]
 pub(crate) fn v1_endpoints() -> impl actix_web::dev::HttpServiceFactory {
     web::scope("/v1")
+        .service(oauth_inners())
+        .service(users_service())
 }
 
 /// Documentation for only the v1 API. This does not include the docs for non `/api/v1` endpoints as that is done in `docs`

@@ -1,5 +1,5 @@
 use crate::openapi::ApiDocs;
-use crate::BASE_URL;
+use crate::statics::BASE_URL;
 use actix_web::{web, HttpResponse, Responder};
 use tracing::warn;
 use utoipa::OpenApi;

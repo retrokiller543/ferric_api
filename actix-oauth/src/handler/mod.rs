@@ -1,5 +1,5 @@
 pub mod builder;
-pub use builder::*;
+
 pub(crate) mod docs;
 
 use crate::dto::token_response::TokenResponse;
@@ -14,6 +14,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
+use tosic_utils::builder;
 use tracing::instrument;
 
 pub type OAuthFuture<T> = Pin<Box<dyn Future<Output = T> + Send + 'static>>;
@@ -24,39 +25,44 @@ pub type AuthorizationFuture = OAuthFuture<AuthorizationReturn>;
 
 pub(crate) type HandlerField<H> = Arc<H>;
 
-#[derive(Clone)]
-pub struct Oauth2Handler {
-    password_grant_handler:
-        Option<HandlerField<dyn Fn(HttpRequest, Username, Password) -> HandlerFuture>>,
-    authorization_code_grant_handler: Option<
-        HandlerField<
-            dyn Fn(
-                HttpRequest,
-                AuthorizationCode,
-                RedirectUri,
-                ClientId,
-                ClientSecret,
-            ) -> HandlerFuture,
-        >,
-    >,
-    client_credentials_grant_handler:
-        Option<HandlerField<dyn Fn(HttpRequest, ClientId, ClientSecret) -> HandlerFuture>>,
-    refresh_token_handler: Option<
-        HandlerField<
-            dyn Fn(
-                HttpRequest,
-                Option<ClientId>,
-                Option<ClientSecret>,
-                RefreshToken,
-            ) -> HandlerFuture,
-        >,
-    >,
+builder! {
+    !default !build
+    OAuth2HandlerBuilder;
 
-    authorization_handler:
-        Option<HandlerField<dyn Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture>>,
+    #[derive(Default, Clone)]
+    pub struct OAuth2Handler {
+        password_grant_handler:
+            Option<HandlerField<dyn Fn(HttpRequest, Username, Password) -> HandlerFuture>>,
+        authorization_code_grant_handler: Option<
+            HandlerField<
+                dyn Fn(
+                    HttpRequest,
+                    AuthorizationCode,
+                    RedirectUri,
+                    ClientId,
+                    ClientSecret,
+                ) -> HandlerFuture,
+            >,
+        >,
+        client_credentials_grant_handler:
+            Option<HandlerField<dyn Fn(HttpRequest, ClientId, ClientSecret) -> HandlerFuture>>,
+        refresh_token_handler: Option<
+            HandlerField<
+                dyn Fn(
+                    HttpRequest,
+                    Option<ClientId>,
+                    Option<ClientSecret>,
+                    RefreshToken,
+                ) -> HandlerFuture,
+            >,
+        >,
+
+        authorization_handler:
+            Option<HandlerField<dyn Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture>>,
+    }
 }
 
-impl Oauth2Handler {
+impl OAuth2Handler {
     #[instrument(skip(self), level = "debug")]
     async fn token_handler(&self, req: HttpRequest, oauth_req: OauthRequest) -> HandlerReturn {
         let password_handler = self.password_grant_handler.clone();
@@ -109,7 +115,7 @@ impl Oauth2Handler {
     }
 }
 
-impl HttpServiceFactory for Oauth2Handler {
+impl HttpServiceFactory for OAuth2Handler {
     fn register(self, config: &mut AppService) {
         let handler = Arc::new(self);
 

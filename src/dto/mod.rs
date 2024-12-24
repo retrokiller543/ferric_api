@@ -4,6 +4,7 @@
 //! and paths not to complex.
 
 pub(crate) mod error;
+pub(crate) mod user;
 
 pub(crate) use error::*;
 use serde::de::DeserializeOwned;
@@ -17,6 +18,7 @@ where
     fn into_dto(self) -> DTO;
 }
 
+#[allow(dead_code)]
 pub(crate) trait FromModel<Model>
 where
     Model: IntoDTO<Self>,

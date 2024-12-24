@@ -4,6 +4,7 @@ macro_rules! server {
     () => {{
         let state = crate::state::app_state().await?;
         let oauth_client_repo = ::actix_web::web::Data::new(crate::repositories::oauth_clients::OAuthClientsRepository::new().await?);
+        let users_repository = ::actix_web::web::Data::new(crate::repositories::users::UsersRepository::new().await?);
 
         ::actix_web::HttpServer::new(move || {
             let cors = crate::config::cors();
@@ -12,7 +13,7 @@ macro_rules! server {
             let index_scope = crate::endpoints::index_scope();
 
 
-            crate::setup::app::app!(state: [state, oauth_client_repo]; service: [index_scope]; wrap: [error_handler, cors];)
+            crate::setup::app::app!(state: [state, oauth_client_repo, users_repository]; service: [index_scope]; wrap: [error_handler, cors];)
         })
     }};
 }

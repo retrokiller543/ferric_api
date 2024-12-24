@@ -30,6 +30,14 @@ generate_endpoint! {
     params: {
         repository: web::Data<OAuthClientsRepository>,
         web::Json(dto): web::Json<OAuthCreateClientDTO>
+    };
+    docs: {
+        request_body: {
+            description = "Details needed to create a new OAuth Client",
+            content(
+                (OAuthCreateClientDTO)
+            )
+        }
     }
     {
         match dto.validate() {

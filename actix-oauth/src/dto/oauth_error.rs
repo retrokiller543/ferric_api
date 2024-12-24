@@ -1,3 +1,4 @@
+use crate::impl_responder;
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_json::json;
@@ -12,6 +13,8 @@ pub struct Oauth2Error {
     /// A human-readable ASCII string providing additional information about the error.
     pub(crate) error_description: String,
 }
+
+impl_responder!(Oauth2Error);
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoResponses)]
 pub enum Oauth2ErrorResponses {

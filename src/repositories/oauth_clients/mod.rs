@@ -1,21 +1,15 @@
 use crate::models::oauth_client::OAuthClient;
-use crate::repositories::Repository;
-use crate::setup::database::get_db_pool;
-use crate::{ApiResult, ServerResult};
+use crate::repositories::{repository, Repository};
+use crate::ApiResult;
 use actix_oauth::types::GrantType;
-use sqlx::{query, query_as, PgPool};
+use sqlx::{query, query_as};
 
-#[derive(Debug, Clone)]
-pub struct OAuthClientsRepository {
-    pool: &'static PgPool,
+repository! {
+    pub(crate) OAuthClientsRepository;
 }
 
+#[allow(dead_code)]
 impl OAuthClientsRepository {
-    pub(crate) async fn new() -> ServerResult<Self> {
-        let pool = get_db_pool().await?;
-        Ok(Self { pool })
-    }
-
     pub(crate) async fn filter(
         &self,
         grant_types: Option<Vec<GrantType>>,
@@ -31,10 +25,10 @@ impl OAuthClientsRepository {
                          FROM oauth_client WHERE 1=1"
             .to_string();
 
-        if let Some(_) = grant_types {
+        if grant_types.is_some() {
             query.push_str(" AND grant_types && $1");
         }
-        if let Some(_) = scopes {
+        if scopes.is_some() {
             query.push_str(" AND scopes && $2");
         }
 
@@ -85,20 +79,7 @@ impl Repository<OAuthClient, String> for OAuthClientsRepository {
         .fetch_all(self.pool)
         .await?)
     }
-    async fn insert(&self, client: &OAuthClient) -> ApiResult<()> {
-        query!(
-            "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
-             VALUES ($1, $2, $3, $4, $5)",
-            client.client_id,
-            client.client_secret,
-            client.redirect_uri,
-            &client.grant_types as _,
-            &client.scopes as _
-        )
-        .execute(self.pool)
-        .await?;
-        Ok(())
-    }
+
     async fn get_by_id(&self, client_id: impl Into<String>) -> ApiResult<Option<OAuthClient>> {
         let client_id = client_id.into();
 
@@ -117,6 +98,20 @@ impl Repository<OAuthClient, String> for OAuthClientsRepository {
         )
         .fetch_optional(self.pool)
         .await?)
+    }
+    async fn insert(&self, client: &OAuthClient) -> ApiResult<()> {
+        query!(
+            "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
+             VALUES ($1, $2, $3, $4, $5)",
+            client.client_id,
+            client.client_secret,
+            client.redirect_uri,
+            &client.grant_types as _,
+            &client.scopes as _
+        )
+        .execute(self.pool)
+        .await?;
+        Ok(())
     }
     async fn update(&self, client: &OAuthClient) -> ApiResult<()> {
         query!(
