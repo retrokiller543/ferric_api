@@ -5,10 +5,10 @@ use utoipa::{ToResponse, ToSchema};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, ToResponse)]
 pub struct TokenResponse {
-    pub(crate) access_token: AccessToken,
-    pub(crate) refresh_token: RefreshToken,
-    token_type: TokenType,
-    expires_in: usize,
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
+    pub token_type: TokenType,
+    pub expires_in: usize,
 }
 
 impl_responder!(TokenResponse);

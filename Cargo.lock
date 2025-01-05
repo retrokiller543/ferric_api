@@ -855,6 +855,7 @@ dependencies = [
  "futures",
  "mime",
  "once_cell",
+ "paste",
  "serde",
  "serde_json",
  "sqlx",
@@ -3151,6 +3152,7 @@ dependencies = [
  "quote",
  "regex",
  "syn 2.0.90",
+ "uuid",
 ]
 
 [[package]]

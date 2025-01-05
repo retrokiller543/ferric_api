@@ -32,7 +32,7 @@ pub(crate) fn oauth_function_inner(
     let expanded = quote! {
         #(#attrs)*
         #vis #signature {
-            Box::pin(async #content)
+            Box::pin(async move #content)
         }
     };
 

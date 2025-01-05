@@ -3,7 +3,7 @@
 macro_rules! server {
     () => {{
         let state = crate::state::app_state().await?;
-        let oauth_client_repo = ::actix_web::web::Data::new(crate::repositories::oauth_clients::OAuthClientsRepository::new().await?);
+        let oauth_client_repo = ::actix_web::web::Data::new(crate::repositories::oauth_clients::OauthClientsRepository::new().await?);
         let users_repository = ::actix_web::web::Data::new(crate::repositories::users::UsersRepository::new().await?);
 
         ::actix_web::HttpServer::new(move || {

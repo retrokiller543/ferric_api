@@ -46,3 +46,15 @@ impl IntoParams for Password {
         vec![param]
     }
 }
+
+impl AsRef<str> for Password {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}
+
+impl AsRef<[u8]> for Password {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}

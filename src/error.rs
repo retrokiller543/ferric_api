@@ -21,7 +21,8 @@ pub(crate) enum ApiError {
     Basic(String),
     #[error(transparent)]
     Validation(#[from] ValidationErrors),
-    #[error("Database error occurred")]
+    #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
+    #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
     Postgres(#[from] sqlx::Error),
     #[error("Failed to hash password")]
     Argon2(#[from] argon2::password_hash::errors::Error),

@@ -4,6 +4,7 @@ use actix_oauth::impl_responder;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(
@@ -21,6 +22,7 @@ use validator::Validate;
     Validate,
 )]
 pub(crate) struct UserDTO {
+    pub(crate) id: Uuid,
     pub(crate) username: String,
     #[validate(email)]
     pub(crate) email: String,

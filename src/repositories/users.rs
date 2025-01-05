@@ -1,14 +1,14 @@
 use crate::models::user::User;
-use crate::repositories::{repository, Repository};
+use crate::models::Model;
+use crate::repositories::{repository, PgQuery, Repository};
 use crate::ApiResult;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
 use chrono::NaiveDateTime;
-use sqlx::{query, query_as};
+use sqlx::{query, query_as, PgPool};
 use tracing::error;
-use uuid::Uuid;
 
 repository! {
     pub(crate) UsersRepository;
@@ -35,6 +35,7 @@ impl UsersRepository {
         let password_hash = self.hash_password(&password)?;
         let user = User {
             id: None,
+            ext_id: None,
             username: username.to_string(),
             password_hash,
             email: email.to_string(),
@@ -46,6 +47,7 @@ impl UsersRepository {
         Ok(user)
     }
 
+    #[tracing::instrument(skip_all)]
     pub(crate) fn verify_password(&self, password: &impl AsRef<[u8]>, hash: &str) -> bool {
         let parsed_hash = match PasswordHash::new(hash) {
             Ok(pass) => pass,
@@ -71,137 +73,70 @@ impl UsersRepository {
     }
 }
 
-impl Repository<User, Uuid> for UsersRepository {
-    #[tracing::instrument(skip_all)]
-    async fn get_all(&self) -> ApiResult<Vec<User>> {
-        Ok(query_as!(
-            User,
-            "SELECT id, username, password_hash, email, created_at, updated_at FROM users"
-        )
-        .fetch_all(self.pool)
-        .await?)
+impl Repository<User> for UsersRepository {
+    #[inline]
+    fn pool(&self) -> &PgPool {
+        self.pool
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn get_by_id(&self, id: impl Into<Uuid>) -> ApiResult<Option<User>> {
-        let id = id.into();
-        Ok(query_as!(
-            User,
-            "SELECT id, username, password_hash, email, created_at, updated_at
-             FROM users
-             WHERE id = $1",
-            id
-        )
-        .fetch_optional(self.pool)
-        .await?)
-    }
-    #[tracing::instrument(skip_all)]
-    async fn insert(&self, user: &User) -> ApiResult<()> {
+    #[inline]
+    fn insert_one(model: &User) -> PgQuery<'_> {
         query!(
             "INSERT INTO users (username, password_hash, email)
              VALUES ($1, $2, $3)",
-            user.username,
-            user.password_hash,
-            user.email,
+            model.username,
+            model.password_hash,
+            model.email,
         )
-        .execute(self.pool)
-        .await?;
-        Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn update(&self, user: &User) -> ApiResult<()> {
+    #[inline]
+    fn update_one(model: &User) -> PgQuery<'_> {
         query!(
             "UPDATE users
              SET username = $1,
                  password_hash = $2,
                  email = $3,
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = $4",
-            user.username,
-            user.password_hash,
-            user.email,
-            user.id
+             WHERE ext_id = $4",
+            model.username,
+            model.password_hash,
+            model.email,
+            model.ext_id
         )
-        .execute(self.pool)
-        .await?;
-        Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn delete_by_id(&self, id: impl Into<Uuid>) -> ApiResult<()> {
-        let id = id.into();
+    #[inline]
+    fn delete_one_by_id(id: &<User as Model>::Id) -> PgQuery<'_> {
         query!(
             "DELETE FROM users
-             WHERE id = $1",
+             WHERE ext_id = $1",
             id
         )
-        .execute(self.pool)
-        .await?;
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn insert_many(&self, users: &[User]) -> ApiResult<()> {
-        let mut tx = self.pool.begin().await?;
-
-        for user in users {
-            query!(
-                "INSERT INTO users (username, password_hash, email)
-                 VALUES ($1, $2, $3)",
-                user.username,
-                user.password_hash,
-                user.email,
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
-        tx.commit().await?;
-        Ok(())
+    async fn get_all(&self) -> ApiResult<Vec<User>> {
+        Ok(query_as!(
+            User,
+            "SELECT id, ext_id, username, password_hash, email, created_at, updated_at FROM users"
+        )
+        .fetch_all(self.pool)
+        .await?)
     }
 
     #[tracing::instrument(skip_all)]
-    async fn update_many(&self, users: &[User]) -> ApiResult<()> {
-        let mut tx = self.pool.begin().await?;
-
-        for user in users {
-            query!(
-                "UPDATE users
-                 SET username = $1,
-                     password_hash = $2,
-                     email = $3,
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE id = $4",
-                user.username,
-                user.password_hash,
-                user.email,
-                user.id
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
-        tx.commit().await?;
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn delete_many(&self, ids: &[Uuid]) -> ApiResult<()> {
-        let mut tx = self.pool.begin().await?;
-
-        for id in ids {
-            query!(
-                "DELETE FROM users
-                 WHERE id = $1",
-                id
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
-        tx.commit().await?;
-        Ok(())
+    async fn get_by_id(&self, id: impl Into<<User as Model>::Id>) -> ApiResult<Option<User>> {
+        let id = id.into();
+        Ok(query_as!(
+            User,
+            "SELECT id, ext_id, username, password_hash, email, created_at, updated_at
+             FROM users
+             WHERE ext_id = $1",
+            id
+        )
+        .fetch_optional(self.pool)
+        .await?)
     }
 }
 
@@ -210,7 +145,7 @@ impl UsersRepository {
     pub async fn find_by_email(&self, email: &str) -> ApiResult<Option<User>> {
         Ok(query_as!(
             User,
-            "SELECT id, username, password_hash, email, created_at, updated_at
+            "SELECT id, ext_id, username, password_hash, email, created_at, updated_at
              FROM users
              WHERE email = $1",
             email
@@ -220,13 +155,13 @@ impl UsersRepository {
     }
 
     #[tracing::instrument(skip_all)]
-    pub async fn find_by_username(&self, username: &str) -> ApiResult<Option<User>> {
+    pub async fn find_by_username(&self, username: impl AsRef<str>) -> ApiResult<Option<User>> {
         Ok(query_as!(
             User,
-            "SELECT id, username, password_hash, email, created_at, updated_at
+            "SELECT id, ext_id, username, password_hash, email, created_at, updated_at
              FROM users
-             WHERE username = $1",
-            username
+             WHERE username = $1 OR email = $1",
+            username.as_ref()
         )
         .fetch_optional(self.pool)
         .await?)
@@ -234,7 +169,7 @@ impl UsersRepository {
 
     #[tracing::instrument(skip_all)]
     pub async fn search(&self, params: &UserSearchParams) -> ApiResult<Vec<User>> {
-        let mut query = "SELECT id, username, password_hash, email, created_at, updated_at 
+        let mut query = "SELECT id, ext_id, username, password_hash, email, created_at, updated_at 
                         FROM users WHERE 1=1"
             .to_string();
         let mut bindings = vec![];

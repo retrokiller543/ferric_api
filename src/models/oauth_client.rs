@@ -1,4 +1,5 @@
 use crate::dto::IntoDTO;
+use crate::models::Model;
 use actix_oauth::dto::create::OAuthCreateClientDTO;
 use actix_oauth::dto::OAuthClientDTO;
 use actix_oauth::types::{ClientId, ClientSecret, GrantType, RedirectUri, Scopes};
@@ -46,5 +47,13 @@ impl IntoDTO<OAuthClientDTO> for OAuthClient {
                 .created_at
                 .expect("Expected 'created_at' to be populated"),
         }
+    }
+}
+
+impl Model for OAuthClient {
+    type Id = String;
+
+    fn get_id(&self) -> Option<Self::Id> {
+        Some(self.client_id.to_string())
     }
 }

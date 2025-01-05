@@ -1,15 +1,89 @@
 use crate::models::oauth_client::OAuthClient;
-use crate::repositories::{repository, Repository};
+use crate::models::Model;
+use crate::repositories::{repository, PgQuery};
 use crate::ApiResult;
 use actix_oauth::types::GrantType;
-use sqlx::{query, query_as};
+use sqlx::query_as;
 
 repository! {
-    pub(crate) OAuthClientsRepository;
+    pub(crate) OauthClientsRepository<OAuthClient>;
+
+    #[inline]
+    fn insert_one(client: &OAuthClient) -> PgQuery<'_> {
+        query!(
+            "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
+             VALUES ($1, $2, $3, $4, $5)",
+            client.client_id,
+            client.client_secret,
+            client.redirect_uri,
+            &client.grant_types as _,
+            &client.scopes as _
+        )
+    }
+
+    fn update_one(client: &OAuthClient) -> PgQuery<'_> {
+        query!(
+            "UPDATE oauth_client
+             SET client_secret = $1,
+                 redirect_uri = $2,
+                 grant_types = $3,
+                 scopes = $4
+             WHERE client_id = $5",
+            client.client_secret,
+            client.redirect_uri,
+            &client.grant_types as _,
+            &client.scopes as _,
+            client.client_id
+        )
+    }
+
+    fn delete_one_by_id(id: &<OAuthClient as Model>::Id) -> PgQuery<'_> {
+        query!(
+            "DELETE FROM oauth_client
+             WHERE client_id = $1",
+            id
+        )
+    }
+
+    async fn get_all(&self) -> ApiResult<Vec<OAuthClient>> {
+        Ok(query_as!(
+            OAuthClient,
+            "SELECT
+                client_id,
+                client_secret,
+                redirect_uri,
+                grant_types as \"grant_types: Vec<GrantType>\",
+                scopes,
+                created_at
+             FROM oauth_client"
+        )
+        .fetch_all(self.pool)
+        .await?)
+    }
+
+    async fn get_by_id(&self, client_id: impl Into<String>) -> ApiResult<Option<OAuthClient>> {
+        let client_id = client_id.into();
+
+        Ok(query_as!(
+            OAuthClient,
+            "SELECT
+                client_id,
+                client_secret,
+                redirect_uri,
+                grant_types as \"grant_types: Vec<GrantType>\",
+                scopes,
+                created_at
+             FROM oauth_client
+             WHERE client_id = $1",
+            client_id
+        )
+        .fetch_optional(self.pool)
+        .await?)
+    }
 }
 
 #[allow(dead_code)]
-impl OAuthClientsRepository {
+impl OauthClientsRepository {
     pub(crate) async fn filter(
         &self,
         grant_types: Option<Vec<GrantType>>,
@@ -60,87 +134,5 @@ impl OAuthClientsRepository {
         };
 
         Ok(result)
-    }
-}
-
-impl Repository<OAuthClient, String> for OAuthClientsRepository {
-    async fn get_all(&self) -> ApiResult<Vec<OAuthClient>> {
-        Ok(query_as!(
-            OAuthClient,
-            "SELECT
-                client_id,
-                client_secret,
-                redirect_uri,
-                grant_types as \"grant_types: Vec<GrantType>\",
-                scopes,
-                created_at
-             FROM oauth_client"
-        )
-        .fetch_all(self.pool)
-        .await?)
-    }
-
-    async fn get_by_id(&self, client_id: impl Into<String>) -> ApiResult<Option<OAuthClient>> {
-        let client_id = client_id.into();
-
-        Ok(query_as!(
-            OAuthClient,
-            "SELECT
-                client_id,
-                client_secret,
-                redirect_uri,
-                grant_types as \"grant_types: Vec<GrantType>\",
-                scopes,
-                created_at
-             FROM oauth_client
-             WHERE client_id = $1",
-            client_id
-        )
-        .fetch_optional(self.pool)
-        .await?)
-    }
-    async fn insert(&self, client: &OAuthClient) -> ApiResult<()> {
-        query!(
-            "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
-             VALUES ($1, $2, $3, $4, $5)",
-            client.client_id,
-            client.client_secret,
-            client.redirect_uri,
-            &client.grant_types as _,
-            &client.scopes as _
-        )
-        .execute(self.pool)
-        .await?;
-        Ok(())
-    }
-    async fn update(&self, client: &OAuthClient) -> ApiResult<()> {
-        query!(
-            "UPDATE oauth_client
-             SET client_secret = $1,
-                 redirect_uri = $2,
-                 grant_types = $3,
-                 scopes = $4
-             WHERE client_id = $5",
-            client.client_secret,
-            client.redirect_uri,
-            &client.grant_types as _,
-            &client.scopes as _,
-            client.client_id
-        )
-        .execute(self.pool)
-        .await?;
-        Ok(())
-    }
-    async fn delete_by_id(&self, client_id: impl Into<String>) -> ApiResult<()> {
-        let client_id = client_id.into();
-
-        query!(
-            "DELETE FROM oauth_client
-             WHERE client_id = $1",
-            client_id
-        )
-        .execute(self.pool)
-        .await?;
-        Ok(())
     }
 }

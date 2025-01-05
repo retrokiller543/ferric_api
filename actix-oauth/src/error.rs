@@ -19,6 +19,10 @@ pub enum Oauth2ErrorType {
     InvalidClient,
     #[error("unauthorized_client")]
     UnauthorizedClient,
+    #[error("server_error")]
+    ServerError,
+    #[error("internal_error")]
+    InternalError(String),
 }
 
 impl Oauth2ErrorType {
@@ -40,6 +44,8 @@ impl Oauth2ErrorType {
             Oauth2ErrorType::UnauthorizedClient => {
                 "The client is not authorized to request a token using this method.".to_string()
             }
+            Oauth2ErrorType::ServerError => "An internal server error has occurred".to_string(),
+            Oauth2ErrorType::InternalError(s) => s.to_string()
         }
     }
 }
@@ -53,6 +59,7 @@ impl ResponseError for Oauth2ErrorType {
             Oauth2ErrorType::InvalidScope => StatusCode::BAD_REQUEST,
             Oauth2ErrorType::InvalidClient => StatusCode::UNAUTHORIZED,
             Oauth2ErrorType::UnauthorizedClient => StatusCode::FORBIDDEN,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 

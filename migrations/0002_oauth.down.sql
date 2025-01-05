@@ -1,25 +1,11 @@
 -- Add down migration script here
--- Drop indexes for access tokens
-DROP INDEX IF EXISTS idx_oauth_access_token_token;
-DROP INDEX IF EXISTS idx_oauth_token_token;
-DROP INDEX IF EXISTS idx_oauth_token_type;
-DROP INDEX IF EXISTS idx_oauth_token_expiration;
+DROP INDEX IF EXISTS idx_oauth_token_user_id;
+DROP INDEX IF EXISTS idx_oauth_token_expires_at_valid;
+DROP INDEX IF EXISTS idx_oauth_auth_code_user_id;
+DROP INDEX IF EXISTS idx_oauth_auth_code_expires_at_valid;
 
--- Drop indexes for auth codes
-DROP INDEX IF EXISTS idx_oauth_auth_code_code;
-
--- Drop indexes for clients
-DROP INDEX IF EXISTS idx_oauth_client_client_id;
-
--- Drop access tokens table
-DROP TABLE IF EXISTS oauth_token;
-
--- Drop authorization codes table
-DROP TABLE IF EXISTS oauth_auth_code;
-
--- Drop clients table
-DROP TABLE IF EXISTS oauth_client;
-
--- Drop Types
-DROP TYPE IF EXISTS grant_type;
-DROP TYPE IF EXISTS token_type;
+DROP TABLE IF EXISTS oauth_token CASCADE;
+DROP TABLE IF EXISTS oauth_auth_code CASCADE;
+DROP TABLE IF EXISTS oauth_client CASCADE;
+DROP TYPE IF EXISTS grant_type CASCADE;
+DROP TYPE IF EXISTS token_type CASCADE;

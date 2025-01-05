@@ -2,6 +2,8 @@ use crate::dto::*;
 use crate::endpoints::api::v1::oauth::oauth_inners;
 use crate::endpoints::api::v1::users::users_service;
 use crate::openapi::{AddV1Prefix, NormalizePath};
+use crate::services::oauth::oauth_handler;
+use actix_oauth::OauthAPI;
 use actix_web::web;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
@@ -14,8 +16,10 @@ mod users;
 
 #[derive(OpenApi)]
 #[openapi(
+    nest(
+        (path = "/", api = OauthAPI),
+    ),
     paths(oauth::client::register),
-    nest(),
     components(schemas(Error), responses(Error)),
     tags(),
     modifiers(&AddV1Prefix, &NormalizePath)
@@ -26,6 +30,7 @@ pub struct DocsV1;
 #[inline]
 pub(crate) fn v1_endpoints() -> impl actix_web::dev::HttpServiceFactory {
     web::scope("/v1")
+        .service(oauth_handler())
         .service(oauth_inners())
         .service(users_service())
 }
