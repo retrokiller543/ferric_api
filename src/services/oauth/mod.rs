@@ -4,7 +4,7 @@ use crate::repositories::Repository;
 use crate::ApiResult;
 use actix_oauth::dto::TokenResponse;
 use actix_oauth::handler::{OAuth2Handler, OAuth2HandlerBuilder};
-use chrono::{DateTime, Local, NaiveDateTime, TimeDelta, Utc};
+use chrono::{Local, TimeDelta};
 use uuid::Uuid;
 
 mod password_handler;

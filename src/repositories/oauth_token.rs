@@ -21,11 +21,11 @@ repository!(
         )
     }
 
-    fn update_one(model: &OAuthToken) -> PgQuery<'_> {
+    fn update_one(_model: &OAuthToken) -> PgQuery<'_> {
         todo!()
     }
 
-    fn delete_one_by_id(id: &<OAuthToken as Model>::Id) -> PgQuery<'_> {
+    fn delete_one_by_id(_id: &<OAuthToken as Model>::Id) -> PgQuery<'_> {
         todo!()
     }
 
