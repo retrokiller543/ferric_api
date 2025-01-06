@@ -1,5 +1,4 @@
 use crate::dto::*;
-use crate::endpoints::api::v1::oauth::oauth_inners;
 use crate::endpoints::api::v1::users::users_service;
 use crate::openapi::{AddV1Prefix, NormalizePath};
 use crate::services::oauth::oauth_handler;
@@ -18,6 +17,7 @@ mod users;
 #[openapi(
     nest(
         (path = "/", api = OauthAPI),
+        (path = "/", api = users::UsersAPI)
     ),
     paths(oauth::client::register),
     components(schemas(Error), responses(Error)),
@@ -30,9 +30,9 @@ pub struct DocsV1;
 #[inline]
 pub(crate) fn v1_endpoints() -> impl actix_web::dev::HttpServiceFactory {
     web::scope("/v1")
-        .service(oauth_handler())
-        .service(oauth_inners())
         .service(users_service())
+        .service(oauth_handler())
+    //.service(oauth_inners())
 }
 
 /// Documentation for only the v1 API. This does not include the docs for non `/api/v1` endpoints as that is done in `docs`

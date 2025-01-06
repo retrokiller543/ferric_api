@@ -38,9 +38,7 @@ async fn create_token_response(user_ext_id: Uuid) -> ApiResult<TokenResponse> {
         expires,
     );
 
-    token_repo
-        .insert_many([access_token, refresh_token])
-        .await?;
+    token_repo.save_all([access_token, refresh_token]).await?;
 
     Ok(token)
 }

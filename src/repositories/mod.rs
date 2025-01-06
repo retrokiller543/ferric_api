@@ -10,7 +10,7 @@ pub(crate) mod oauth_clients;
 pub(crate) mod oauth_token;
 pub(crate) mod users;
 
-type PgQuery<'a> = Query<'a, Postgres, PgArguments>;
+pub(crate) type PgQuery<'a> = Query<'a, Postgres, PgArguments>;
 
 /// Default repository methods, each repository may extend this themselves
 ///
@@ -68,25 +68,6 @@ where
         unimplemented!("This method has not been implemented for this repository")
     }
 
-    /// `save` should:
-    /// - Insert if the model has no ID
-    /// - Update if the model has an ID
-    #[tracing::instrument(skip_all, level = "debug")]
-    async fn save(&self, model: &M) -> ApiResult<()> {
-        if model.get_id().is_none() {
-            self.insert(model).await
-        } else {
-            self.update(model).await
-        }
-    }
-
-    /// Simple insert call
-    #[tracing::instrument(skip_all, level = "debug")]
-    async fn insert(&self, model: &M) -> ApiResult<()> {
-        Self::insert_one(model).execute(self.pool()).await?;
-        Ok(())
-    }
-
     /// Update call
     #[tracing::instrument(skip_all, level = "debug")]
     async fn update(&self, model: &M) -> ApiResult<()> {
@@ -103,17 +84,16 @@ where
         Ok(())
     }
 
+    /// Simple insert call
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn insert(&self, model: &M) -> ApiResult<()> {
+        Self::insert_one(model).execute(self.pool()).await?;
+        Ok(())
+    }
+
     #[tracing::instrument(skip_all, level = "debug")]
     async fn insert_many(&self, models: impl IntoIterator<Item = M>) -> ApiResult<()> {
-        let mut tx = self.pool().begin().await?;
-
-        for model in models {
-            Self::insert_one(&model).execute(&mut *tx).await?;
-        }
-
-        tx.commit().await?;
-
-        Ok(())
+        self.insert_batch::<DEFAULT_BATCH_SIZE>(models).await
     }
 
     #[tracing::instrument(skip_all, level = "debug")]
@@ -121,53 +101,43 @@ where
         &self,
         models: impl IntoIterator<Item = M>,
     ) -> ApiResult<()> {
-        let mut buf = Vec::with_capacity(N);
-        for model in models {
-            buf.push(model);
-            if buf.len() == N {
-                let mut tx = self.pool().begin().await?;
-
-                for m in buf.drain(..) {
-                    Self::insert_one(&m).execute(&mut *tx).await?;
-                }
-
-                tx.commit().await?;
-            }
-        }
-
-        let mut tx = self.pool().begin().await?;
-
-        for m in buf.drain(..) {
-            Self::insert_one(&m).execute(&mut *tx).await?;
-        }
-
-        tx.commit().await?;
-
-        Ok(())
+        BatchOperator::<M, N>::execute_query(models, self.pool(), Self::insert_one).await
     }
 
     #[tracing::instrument(skip_all, level = "debug")]
     async fn update_many(&self, models: impl IntoIterator<Item = M>) -> ApiResult<()> {
-        let mut tx = self.pool().begin().await?;
+        self.update_batch::<DEFAULT_BATCH_SIZE>(models).await
+    }
 
-        for model in models {
-            Self::update_one(&model).execute(&mut *tx).await?;
-        }
-
-        tx.commit().await?;
-        Ok(())
+    async fn update_batch<const N: usize>(
+        &self,
+        models: impl IntoIterator<Item = M>,
+    ) -> ApiResult<()> {
+        BatchOperator::<M, N>::execute_query(models, self.pool(), Self::update_one).await
     }
 
     #[tracing::instrument(skip_all, level = "debug")]
     async fn delete_many(&self, ids: impl IntoIterator<Item = M::Id>) -> ApiResult<()> {
-        let mut tx = self.pool().begin().await?;
+        self.delete_batch::<DEFAULT_BATCH_SIZE>(ids).await
+    }
 
-        for id in ids {
-            Self::delete_one_by_id(&id).execute(&mut *tx).await?;
+    async fn delete_batch<const N: usize>(
+        &self,
+        ids: impl IntoIterator<Item = M::Id>,
+    ) -> ApiResult<()> {
+        BatchOperator::<M::Id, N>::execute_query(ids, self.pool(), Self::delete_one_by_id).await
+    }
+
+    /// `save` should:
+    /// - Insert if the model has no ID
+    /// - Update if the model has an ID
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn save(&self, model: &M) -> ApiResult<()> {
+        if model.get_id().is_none() {
+            self.insert(model).await
+        } else {
+            self.update(model).await
         }
-
-        tx.commit().await?;
-        Ok(())
     }
 
     /// `save_all` is like `save`, but for a batch of models.
@@ -177,26 +147,84 @@ where
     /// All in a single transaction.
     #[tracing::instrument(skip_all, level = "debug")]
     async fn save_all(&self, models: impl IntoIterator<Item = M>) -> ApiResult<()> {
-        let mut tx = self.pool().begin().await?;
+        self.save_batch::<DEFAULT_BATCH_SIZE>(models).await
+    }
 
-        for model in models {
-            if model.get_id().is_none() {
-                Self::insert_one(&model).execute(&mut *tx).await?;
-            } else {
-                Self::update_one(&model).execute(&mut *tx).await?;
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn save_batch<const N: usize>(
+        &self,
+        models: impl IntoIterator<Item = M>,
+    ) -> ApiResult<()> {
+        BatchOperator::<M, N>::execute_batch(models, |batch| async {
+            let mut update = Vec::new();
+            let mut insert = Vec::new();
+
+            for model in batch {
+                if model.get_id().is_some() {
+                    update.push(model);
+                } else {
+                    insert.push(model);
+                }
             }
-        }
 
-        tx.commit().await?;
-        Ok(())
+            match (update.is_empty(), insert.is_empty()) {
+                // Both non-empty => run them concurrently
+                (false, false) => {
+                    futures::try_join!(self.update_many(update), self.insert_many(insert))?;
+                }
+                // Only update
+                (false, true) => {
+                    self.update_many(update).await?;
+                }
+                // Only insert
+                (true, false) => {
+                    self.insert_many(insert).await?;
+                }
+                // Neither => no-op
+                (true, true) => {}
+            }
+
+            Ok(())
+        })
+        .await
     }
 }
 
+/// Creates a new database repository, either just creates a basic new type and statics to interact
+/// with the main database pool.
+///
+/// If a database model is provided it will also try to implement the [`Repository`] trait.
+///
+/// # Examples
+///
+/// ```
+/// use crate::repositories::repository;
+/// use crate::models::Model;
+///
+///
+/// struct Person {
+///     id: String,
+///     name: String
+/// }
+///
+/// impl Model for Person {
+///     type Id = String;
+///
+///     fn get_id(&self) -> Option<Self::Id> {
+///         Some(self.id)
+///     }
+/// }
+///
+/// repository!{
+///     PersonRepository<Person>;
+/// }
+/// ```
+///
 macro_rules! repository {
-    (
+    {
         $( #[$meta:meta] )*
         $vis:vis $ident:ident;
-    ) => {
+    } => {
         $(#[$meta])*
         #[derive(Clone, Copy, Debug)]
         $vis struct $ident {
@@ -204,18 +232,17 @@ macro_rules! repository {
         }
 
         ::paste::paste! {
-
-            pub(crate) static [<$ident:snake:upper>]: ::tokio::sync::OnceCell<$ident> = ::tokio::sync::OnceCell::const_new();
+            $vis static [<$ident:snake:upper>]: ::tokio::sync::OnceCell<$ident> = ::tokio::sync::OnceCell::const_new();
 
             #[inline(always)]
             #[tracing::instrument(level = "debug")]
-            pub(crate) async fn [<init_ $ident:snake:lower>]() -> crate::ApiResult<$ident> {
+            async fn [<init_ $ident:snake:lower>]() -> crate::ApiResult<$ident> {
                 $ident::new().await.map_err(|err| crate::error::ApiError::Generic(Box::new(err)))
             }
 
             #[inline(always)]
             #[tracing::instrument(level = "debug")]
-            pub(crate) async fn [<get_ $ident:snake>]() -> crate::ApiResult<&'static $ident> {
+            $vis async fn [<get_ $ident:snake>]() -> crate::ApiResult<&'static $ident> {
                 [<$ident:snake:upper>].get_or_try_init([<init_ $ident:snake:lower>]).await
             }
         }
@@ -230,14 +257,235 @@ macro_rules! repository {
         }
     };
 
-    (
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Insert is not implemented for this repository");
+            }
+
+            #[inline]
+            fn update_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Update is not implemented for this repository");
+            }
+
+            #[inline]
+            fn delete_one_by_id(_model: &<$model as Model>::Id) -> crate::repositories::PgQuery {
+                unimplemented!("Delete is not implemented for this repository");
+            }
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        insert_one($model_name:ident) $block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one($model_name: &$model) -> crate::repositories::PgQuery $block
+
+            #[inline]
+            fn update_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Update is not implemented for this repository");
+            }
+
+            #[inline]
+            fn delete_one_by_id(_model: &<$model as Model>::Id) -> crate::repositories::PgQuery {
+                unimplemented!("Delete is not implemented for this repository");
+            }
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        update_one($model_name:ident) $block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Insert is not implemented for this repository");
+            }
+
+            #[inline]
+            fn update_one($model_name: &$model) -> crate::repositories::PgQuery $block
+
+            #[inline]
+            fn delete_one_by_id(_model: &<$model as Model>::Id) -> crate::repositories::PgQuery {
+                unimplemented!("Delete is not implemented for this repository");
+            }
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        delete_one_by_id($id_name:ident) $block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Insert is not implemented for this repository");
+            }
+
+            #[inline]
+            fn update_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Update is not implemented for this repository");
+            }
+
+            #[inline]
+            fn delete_one_by_id($id_name: &<$model as Model>::Id) -> crate::repositories::PgQuery $block
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        update_one($model_name:ident) $update_block:block;
+        delete_one_by_id($id_name:ident) $delete_block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one(_model: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Insert is not implemented for this repository");
+            }
+
+            #[inline]
+            fn update_one($model_name: &$model) -> crate::repositories::PgQuery $update_block
+
+            #[inline]
+            fn delete_one_by_id($id_name: &<$model as Model>::Id) -> crate::repositories::PgQuery $delete_block
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        insert_one($insert_model_name:ident) $insert_block:block;
+        update_one($update_model_name:ident) $update_block:block;
+        delete_one_by_id($id_name:ident) $delete_block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one($insert_model_name: &$model) -> crate::repositories::PgQuery $insert_block
+
+            #[inline]
+            fn update_one($update_model_name_name: &$model) -> crate::repositories::PgQuery $update_block
+
+            #[inline]
+            fn delete_one_by_id($id_name: &<$model as Model>::Id) -> crate::repositories::PgQuery $delete_block
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        insert_one($insert_model_name:ident) $insert_block:block;
+        update_one($update_model_name:ident) $update_block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one($insert_model_name: &$model) -> crate::repositories::PgQuery $insert_block
+
+            #[inline]
+            fn update_one($update_model_name_name: &$model) -> crate::repositories::PgQuery $update_block
+
+            #[inline]
+            fn delete_one_by_id(_: &<$model as Model>::Id) -> crate::repositories::PgQuery {
+                unimplemented!("Delete is not implemented for this repository");
+            }
+
+            $($tokens)*
+        );
+    };
+
+    {
+        $( #[$meta:meta] )*
+        $vis:vis $ident:ident<$model:ty>;
+
+        insert_one($insert_model_name:ident) $insert_block:block;
+        delete_one_by_id($id_name:ident) $delete_block:block;
+
+        $($tokens:tt)*
+    } => {
+        crate::repositories::repository!(
+            $(#[$meta])*
+            $vis $ident<$model>;
+
+            #[inline]
+            fn insert_one($insert_model_name: &$model) -> crate::repositories::PgQuery $insert_block
+
+            #[inline]
+            fn update_one(_: &$model) -> crate::repositories::PgQuery {
+                unimplemented!("Update is not implemented for this repository");
+            }
+
+            #[inline]
+            fn delete_one_by_id($id_name: &<$model as Model>::Id) -> crate::repositories::PgQuery $delete_block
+
+            $($tokens)*
+        );
+    };
+
+    {
         $( #[$meta:meta] )*
         $vis:vis $ident:ident<$model:ty>;
 
         $($tokens:tt)*
-    ) => {
-        use sqlx::query;
-
+    } => {
         crate::repositories::repository!($(#[$meta])* $vis $ident;);
 
         impl crate::repositories::Repository<$model> for $ident {
@@ -250,4 +498,5 @@ macro_rules! repository {
     }
 }
 use crate::models::Model;
+use crate::utils::{BatchOperator, DEFAULT_BATCH_SIZE};
 pub(crate) use repository;

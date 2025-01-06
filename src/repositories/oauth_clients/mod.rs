@@ -3,7 +3,7 @@ use crate::models::Model;
 use crate::repositories::{repository, PgQuery};
 use crate::ApiResult;
 use actix_oauth::types::GrantType;
-use sqlx::query_as;
+use sqlx::{query, query_as};
 
 repository! {
     pub(crate) OauthClientsRepository<OAuthClient>;

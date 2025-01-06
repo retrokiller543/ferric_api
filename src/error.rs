@@ -27,7 +27,7 @@ pub(crate) enum ApiError {
     #[error("Failed to hash password")]
     Argon2(#[from] argon2::password_hash::errors::Error),
     #[error(transparent)]
-    Generic(#[from] Box<dyn std::error::Error>),
+    Generic(#[from] Box<dyn std::error::Error + Send>),
 }
 
 /// Errors that occurs on the server level and could cause the entire server to go down
@@ -45,7 +45,7 @@ pub(crate) enum ServerError {
     #[error(transparent)]
     Postgres(#[from] sqlx::Error),
     #[error(transparent)]
-    Generic(#[from] Box<dyn std::error::Error>),
+    Generic(#[from] Box<dyn std::error::Error + Send>),
 }
 
 impl ResponseError for ApiError {

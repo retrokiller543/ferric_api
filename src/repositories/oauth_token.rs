@@ -1,14 +1,13 @@
 use crate::models::oauth_token::OAuthToken;
 use crate::models::Model;
-use crate::repositories::{repository, PgQuery};
+use crate::repositories::repository;
 use crate::ApiResult;
-use sqlx::query_as;
+use sqlx::{query, query_as};
 
-repository!(
+repository! {
     pub(crate) OauthTokenRepository<OAuthToken>;
 
-    #[inline]
-    fn insert_one(model: &OAuthToken) -> PgQuery {
+    insert_one(model) {
         query!(
             "INSERT INTO oauth_token (token, client_id, user_ext_id, token_type, scopes, expires_at)
              VALUES ($1, $2, $3, $4, $5, $6)",
@@ -19,15 +18,7 @@ repository!(
             model.scopes as _,
             model.expires_at,
         )
-    }
-
-    fn update_one(_model: &OAuthToken) -> PgQuery<'_> {
-        todo!()
-    }
-
-    fn delete_one_by_id(_id: &<OAuthToken as Model>::Id) -> PgQuery<'_> {
-        todo!()
-    }
+    };
 
     #[tracing::instrument(skip_all, level = "debug")]
     async fn get_by_id(&self, id: impl Into<i64>) -> ApiResult<Option<OAuthToken>> {
@@ -105,4 +96,4 @@ repository!(
         q.execute(self.pool).await?;
         Ok(())
     }
-);
+}

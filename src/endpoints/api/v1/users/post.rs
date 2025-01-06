@@ -11,6 +11,12 @@ generate_endpoint! {
     method: post;
     path: "";
     error: ApiError;
+    docs: {
+        context_path: "/users",
+        request_body: {
+            schema = UserCreateDTO
+        }
+    }
     params: {
         repo: web::Data<UsersRepository>,
         web::Json(dto): web::Json<UserCreateDTO>
