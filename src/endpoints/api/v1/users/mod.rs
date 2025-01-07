@@ -1,24 +1,18 @@
 use crate::endpoints::api::v1::users::get::users_get_service;
-use crate::openapi::NormalizePath;
-use actix_web::dev::HttpServiceFactory;
-use actix_web::web;
-use utoipa::OpenApi;
+use crate::utils::api_scope;
 
 mod delete;
 mod get;
 mod post;
 
-#[derive(OpenApi)]
-#[openapi(
-    paths(post::create_user),
-    components(schemas(crate::dto::user::create::UserCreateDTO), responses()),
-    modifiers(&NormalizePath)
-)]
-pub(super) struct UsersAPI;
+api_scope! {
+    pub(super) Users = "/users";
 
-pub(crate) fn users_service() -> impl HttpServiceFactory {
-    web::scope("/users")
-        .service(users_get_service())
-        .service(post::create_user)
-        .service(delete::delete_user)
+    services: [users_get_service];
+    paths: [post::create_user, delete::delete_user];
+    docs: {
+        extra_paths: [get::get_users, get::by_id::get_user_by_id];
+        schemas: [crate::dto::UserDTO];
+        responses: [crate::dto::UserDTO, crate::dto::UserDTOVecResponses];
+    }
 }

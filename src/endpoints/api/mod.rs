@@ -13,9 +13,7 @@ pub(crate) mod v1;
 /// All API endpoints
 #[inline]
 pub(crate) fn api() -> impl actix_web::dev::HttpServiceFactory {
-    web::scope("/api")
-        .service(v1::v1_endpoints())
-        .service(docs())
+    web::scope("/api").service(v1::v1_service()).service(docs())
 }
 
 /// Only real reason we have this is to be able to put scoped middlewares for the docs, for example we can add auth middleware to secure the docs

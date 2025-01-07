@@ -10,6 +10,10 @@ generate_endpoint! {
     method: delete;
     path: "/{id}";
     error: ApiError;
+    docs: {
+        tag: "user",
+        context_path: "/users",
+    }
     params: {
         repo: web::Data<UsersRepository>,
         id: web::Path<Uuid>

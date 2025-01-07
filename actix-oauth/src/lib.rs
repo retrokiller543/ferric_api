@@ -59,7 +59,6 @@ impl Modify for NormalizePath {
     ),
     tags(
         (name = "OAuth", description = "Oauth2 related endpoints"),
-        (name = "Auth", description = "Authentication related endpoints")
     ),
     modifiers(&NormalizePath)
 )]

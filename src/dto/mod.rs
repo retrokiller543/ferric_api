@@ -2,6 +2,7 @@
 //! or repose to and from the API or also any requests sent to other servers.
 //! It's recommended to re-export all DTO's to be visible at `crate::dto::*` to make things simpler
 //! and paths not to complex.
+#![allow(unused_imports)]
 
 pub(crate) mod error;
 pub(crate) mod user;
@@ -9,6 +10,7 @@ pub(crate) mod user;
 pub(crate) use error::*;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+pub(crate) use user::*;
 
 /// Conversion trait between database model and a DTO
 pub(crate) trait IntoDTO<DTO>

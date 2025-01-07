@@ -12,6 +12,7 @@ generate_endpoint! {
     path: "";
     error: ApiError;
     docs: {
+        tag: "user",
         context_path: "/users",
         request_body: {
             schema = UserCreateDTO

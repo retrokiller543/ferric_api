@@ -6,7 +6,7 @@ use crate::dto::{AuthorizationRequest, Oauth2ErrorResponses, OauthRequest, Token
 #[utoipa::path(
     post,
     path = "/oauth/token",
-    tags = ["OAuth", "Auth"],
+    tags = ["OAuth"],
     request_body(
         description = "The different OAuth2 flows that can be parsed but not guaranteed to be implemented, *Note that it can be sent as a query param as well but its not recommended*",
         content(
@@ -22,10 +22,13 @@ use crate::dto::{AuthorizationRequest, Oauth2ErrorResponses, OauthRequest, Token
 #[allow(dead_code)]
 fn token() {}
 
+/// Exchange credentials for short-lived code
+///
+/// The code can later be exchanged for a long-lived token
 #[utoipa::path(
     post,
     path = "/oauth/authorize",
-    tags = ["OAuth", "Auth"],
+    tags = ["OAuth"],
     params(AuthorizationRequest),
     responses(
         Oauth2ErrorResponses,

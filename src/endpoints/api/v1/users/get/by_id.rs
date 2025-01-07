@@ -1,4 +1,4 @@
-use crate::dto::IntoDTO;
+use crate::dto::{IntoDTO, UserDTO};
 use crate::error::ApiError;
 use crate::repositories::users::UsersRepository;
 use crate::repositories::Repository;
@@ -11,6 +11,13 @@ generate_endpoint! {
     method: get;
     path: "/{id}";
     error: ApiError;
+    docs: {
+        tag: "user",
+        context_path: "/users"
+        responses: {
+            (status = 200, response = UserDTO)
+        }
+    }
     params: {
         repo: web::Data<UsersRepository>,
         id: web::Path<Uuid>

@@ -109,6 +109,7 @@ where
         self.update_batch::<DEFAULT_BATCH_SIZE>(models).await
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     async fn update_batch<const N: usize>(
         &self,
         models: impl IntoIterator<Item = M>,
@@ -121,6 +122,7 @@ where
         self.delete_batch::<DEFAULT_BATCH_SIZE>(ids).await
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     async fn delete_batch<const N: usize>(
         &self,
         ids: impl IntoIterator<Item = M::Id>,
@@ -498,5 +500,5 @@ macro_rules! repository {
     }
 }
 use crate::models::Model;
-use crate::utils::{BatchOperator, DEFAULT_BATCH_SIZE};
+use crate::utils::batch::{BatchOperator, DEFAULT_BATCH_SIZE};
 pub(crate) use repository;

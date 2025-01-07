@@ -1,37 +1,25 @@
-use crate::dto::IntoDTO;
 use crate::error::ApiError;
 use crate::models::oauth_client::OAuthClient;
 use crate::repositories::oauth_clients::OauthClientsRepository;
 use crate::repositories::Repository;
 use actix_helper_utils::generate_endpoint;
-use actix_oauth::dto::create::OAuthCreateClientDTO;
+use actix_oauth::dto::OAuthCreateClientDTO;
 use actix_web::web;
 use validator::Validate;
 
 generate_endpoint! {
-    fn get_clients;
-    method: get;
-    path: "/clients";
-    error: ApiError;
-    params: {
-        repository: web::Data<OauthClientsRepository>
-    }
-    {
-        let clients = repository.get_all().await?;
-        Ok(web::Json(clients.into_dto()))
-    }
-}
-
-generate_endpoint! {
+    /// Register a new client
     fn register;
     method: post;
-    path: "/clients";
+    path: "";
     error: ApiError;
     params: {
         repository: web::Data<OauthClientsRepository>,
         web::Json(dto): web::Json<OAuthCreateClientDTO>
     };
     docs: {
+        tag: "Client",
+        context_path: "/clients",
         request_body: {
             description = "Details needed to create a new OAuth Client",
             content(

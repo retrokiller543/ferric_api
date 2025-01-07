@@ -12,7 +12,6 @@ macro_rules! server {
                 .default_handler(crate::error::default_error_handler);
             let index_scope = crate::endpoints::index_scope();
 
-
             crate::setup::app::app!(state: [state, oauth_client_repo, users_repository]; service: [index_scope]; wrap: [error_handler, cors];)
         })
     }};
