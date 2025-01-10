@@ -13,3 +13,63 @@ mod_def! {
 }
 
 use crate::mod_def;
+
+#[macro_export]
+macro_rules! dto {
+    {
+        $(#[$meta:meta])*
+        $vis:vis struct $ident:ident$(<$($lifetime:lifetime $(,)?)? $($generic:ident),*>)? {
+            $($(#[$field_meta:meta])* $field_vis:vis $field:ident: $field_type:ty),* $(,)?
+        }
+    } => {
+        $(#[$meta])*
+        $vis struct $ident$(<$($lifetime,)? $($generic),*>)? {
+            $($(#[$field_meta])* $field_vis $field: $field_type),*
+        }
+
+        ::actix_oauth::impl_responder!($ident$(<$($lifetime,)? $($generic),*>)?);
+    };
+
+    {
+        $(#[$meta:meta])*
+        $vis:vis struct $ident:ident$(<$($lifetime:lifetime $(,)?)? $($generic:ident),*>)? => $model:ty {
+            $($(#[$field_meta:meta])* $field_vis:vis $field:ident: $field_type:ty),*
+        }
+    } => {
+        crate::dto! {
+            $(#[$meta])*
+            $vis struct $ident$(<$($lifetime,)? $($generic),*>)? {
+                $($(#[$field_meta])* $field_vis $field: $field_type),*
+            }
+        }
+
+        ::paste::paste! {
+            impl$(<$($lifetime $(,)?)? $($generic),*>)? crate::traits::FromModel<Vec<$model$(<$($lifetime $(,)?)? $($generic),*>)?>> for [<$ident Collection>]$(<$($lifetime $(,)?)? $($generic),*>)? {
+                fn from_model(model: Vec<$model$(<$($lifetime $(,)?)? $($generic),*>)?>) -> Self {
+                    let dto: Vec<_> = model.into_dto();
+                    dto.into()
+                }
+            }
+        }
+    };
+
+    {
+        $(#[$meta:meta])*
+        $vis:vis struct $ident:ident$(<$($lifetime:lifetime $(,)?)? $($generic:ident),*>)? => $model:ty {
+            $($(#[$field_meta:meta])* $field_vis:vis $field:ident: $field_type:ty),*
+        }
+
+        $($tt:tt)*
+    } => {
+        crate::dto! {
+            $(#[$meta])*
+            $vis struct $ident$(<$($lifetime,)? $($generic),*>)? => $model {
+                $($(#[$field_meta])* $field_vis $field: $field_type),*
+            }
+        }
+
+        impl$(<$($lifetime $(,)?)? $($generic),*>)? crate::traits::FromModel<$model$(<$($lifetime $(,)?)? $($generic),*>)?> for $ident {
+            $($tt)*
+        }
+    };
+}
