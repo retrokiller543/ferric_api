@@ -21,5 +21,24 @@ macro_rules! impl_responder {
                 ::actix_web::HttpResponse::Ok().json(&self)
             }
         }
+
+        ::paste::paste! {
+            #[derive(serde::Serialize, serde::Deserialize)]
+            pub struct [<$ident Collection>]$(<$($lifetime,)? $($generic),*>)?(Vec<$ident$(<$($lifetime,)? $($generic),*>)?>);
+
+            impl$(<$($lifetime,)? $($generic),*>)? From<Vec<$ident$(<$($lifetime,)? $($generic),*>)?>> for [<$ident Collection>]$(<$($lifetime,)? $($generic),*>)? {
+                fn from(collection: Vec<$ident$(<$($lifetime,)? $($generic),*>)?>) -> Self {
+                    Self(collection)
+                }
+            }
+
+            impl$(<$($lifetime,)? $($generic),*>)? ::actix_web::Responder for [<$ident Collection>]$(<$($lifetime,)? $($generic),*>)? {
+                type Body = ::actix_web::body::BoxBody;
+
+                fn respond_to(self, _req: &::actix_web::HttpRequest) -> ::actix_web::HttpResponse<Self::Body> {
+                    ::actix_web::HttpResponse::Ok().json(&self)
+                }
+            }
+        }
     };
 }

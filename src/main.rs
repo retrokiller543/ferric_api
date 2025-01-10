@@ -1,3 +1,4 @@
+#![allow(async_fn_in_trait)]
 use crate::error::{ApiError, ServerError};
 use crate::setup::server;
 use crate::setup::setup;
@@ -9,13 +10,14 @@ pub(crate) mod endpoints;
 pub(crate) mod env;
 pub(crate) mod error;
 pub(crate) mod logging;
-mod models;
+pub(crate) mod models;
 pub(crate) mod openapi;
 pub(crate) mod repositories;
 pub(crate) mod services;
 pub(crate) mod setup;
 pub(crate) mod state;
 pub(crate) mod statics;
+pub mod traits;
 pub(crate) mod types;
 pub(crate) mod utils;
 

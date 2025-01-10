@@ -33,3 +33,4 @@ pin-project-lite = "0.2.15"
 actix_oauth_macro = { path = "../actix-oauth-macro" }
 sqlx = { workspace = true }
 chrono = { workspace = true }
+paste = "1.0.15"

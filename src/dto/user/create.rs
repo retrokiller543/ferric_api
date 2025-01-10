@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
+/// User creation DTO object
+///
+/// The required input we need from a user to creat a new user
 #[derive(
     Default,
     Debug,

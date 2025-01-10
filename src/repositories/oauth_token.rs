@@ -1,6 +1,6 @@
 use crate::models::oauth_token::OAuthToken;
-use crate::models::Model;
 use crate::repositories::repository;
+use crate::traits::model::Model;
 use crate::ApiResult;
 use sqlx::{query, query_as};
 

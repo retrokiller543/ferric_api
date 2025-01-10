@@ -8,8 +8,8 @@ members = [
 [workspace.dependencies]
 actix = "0.13.5"
 actix-web = "4.9"
-# actix-helper-utils ={ version = "0.0.1-alpha", registry = "gitea"}
-actix-helper-utils ={ git = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git" }
+actix-helper-utils ={ version = "0.0.2-alpha", registry = "gitea"}
+#actix-helper-utils ={ git = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/actix-utils.git" }
 # actix-helper-utils ={ path = "../actix-utils" }
 actix-cors = "0.7.0"
 actix-oauth = { version = "0.1.0", path = "actix-oauth" }
@@ -77,6 +77,7 @@ constcat = "0.5.1"
 uuid = { version = "1.11.0", features = ["v4", "serde"] }
 argon2 = { version =  "0.5.3", features = ["std"] }
 paste = "1.0.15"
+async-trait = "0.1.85"
 
 [build-dependencies]
 sqlx = { workspace = true }

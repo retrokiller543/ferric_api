@@ -1,6 +1,4 @@
-use crate::dto::user::UserDTO;
-use crate::dto::IntoDTO;
-use crate::models::Model;
+use crate::traits::model::Model;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -17,18 +15,6 @@ pub(crate) struct User {
     pub(crate) email: String,
     pub(crate) created_at: Option<NaiveDateTime>,
     pub(crate) updated_at: Option<NaiveDateTime>,
-}
-
-impl IntoDTO<UserDTO> for User {
-    fn into_dto(self) -> UserDTO {
-        UserDTO {
-            id: self.ext_id.unwrap(),
-            username: self.username,
-            email: self.email,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-        }
-    }
 }
 
 impl Model for User {

@@ -1,7 +1,8 @@
-use crate::dto::IntoDTO;
-use crate::models::Model;
+use crate::traits::into_dto::IntoDTO;
+use crate::traits::model::Model;
+use crate::traits::FromModel;
 use actix_oauth::dto::create::OAuthCreateClientDTO;
-use actix_oauth::dto::OAuthClientDTO;
+use actix_oauth::dto::{OAuthClientDTO, OAuthClientDTOCollection};
 use actix_oauth::types::{ClientId, ClientSecret, GrantType, RedirectUri, Scopes};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -35,7 +36,7 @@ impl OAuthClient {
     }
 }
 
-impl IntoDTO<OAuthClientDTO> for OAuthClient {
+/*impl IntoDTO<OAuthClientDTO> for OAuthClient {
     fn into_dto(self) -> OAuthClientDTO {
         OAuthClientDTO {
             client_id: ClientId::new(self.client_id),
@@ -47,6 +48,28 @@ impl IntoDTO<OAuthClientDTO> for OAuthClient {
                 .created_at
                 .expect("Expected 'created_at' to be populated"),
         }
+    }
+}*/
+
+impl FromModel<OAuthClient> for OAuthClientDTO {
+    fn from_model(model: OAuthClient) -> Self {
+        Self {
+            client_id: ClientId::new(model.client_id),
+            client_secret: ClientSecret::new(model.client_secret),
+            redirect_uri: RedirectUri::new(model.redirect_uri),
+            grant_types: model.grant_types,
+            scopes: Scopes::from_iter(model.scopes),
+            created_at: model
+                .created_at
+                .expect("Expected 'created_at' to be populated"),
+        }
+    }
+}
+
+impl FromModel<Vec<OAuthClient>> for OAuthClientDTOCollection {
+    fn from_model(model: Vec<OAuthClient>) -> Self {
+        let dto: Vec<OAuthClientDTO> = model.into_dto();
+        dto.into()
     }
 }
 

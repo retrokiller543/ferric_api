@@ -10,7 +10,7 @@ CREATE TABLE oauth_token (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 */
-use crate::models::Model;
+use crate::traits::model::Model;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;

@@ -1,6 +1,6 @@
 use crate::models::oauth_token::{OAuthToken, TokenType};
 use crate::repositories::oauth_token::get_oauth_token_repository;
-use crate::repositories::Repository;
+use crate::traits::repository::Repository;
 use crate::ApiResult;
 use actix_oauth::dto::TokenResponse;
 use actix_oauth::handler::{OAuth2Handler, OAuth2HandlerBuilder};

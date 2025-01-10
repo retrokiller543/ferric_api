@@ -1,7 +1,7 @@
 use crate::error::ApiError;
 use crate::models::oauth_client::OAuthClient;
 use crate::repositories::oauth_clients::OauthClientsRepository;
-use crate::repositories::Repository;
+use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
 use actix_oauth::dto::OAuthCreateClientDTO;
 use actix_web::web;

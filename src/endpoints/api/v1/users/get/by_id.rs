@@ -1,7 +1,8 @@
-use crate::dto::{IntoDTO, UserDTO};
+use crate::dto::UserDTO;
 use crate::error::ApiError;
 use crate::repositories::users::UsersRepository;
-use crate::repositories::Repository;
+use crate::traits::into_dto::IntoDTO;
+use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::web;
 use uuid::Uuid;
@@ -10,6 +11,7 @@ generate_endpoint! {
     fn get_user_by_id;
     method: get;
     path: "/{id}";
+    return_type: Option<UserDTO>;
     error: ApiError;
     docs: {
         tag: "user",

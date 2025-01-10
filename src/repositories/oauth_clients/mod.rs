@@ -1,6 +1,6 @@
 use crate::models::oauth_client::OAuthClient;
-use crate::models::Model;
 use crate::repositories::{repository, PgQuery};
+use crate::traits::model::Model;
 use crate::ApiResult;
 use actix_oauth::types::GrantType;
 use sqlx::{query, query_as};

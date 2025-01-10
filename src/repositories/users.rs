@@ -1,6 +1,7 @@
 use crate::models::user::User;
-use crate::models::Model;
-use crate::repositories::{repository, PgQuery, Repository};
+use crate::repositories::{repository, PgQuery};
+use crate::traits::model::Model;
+use crate::traits::repository::Repository;
 use crate::ApiResult;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},

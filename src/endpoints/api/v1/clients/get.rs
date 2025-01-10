@@ -1,8 +1,10 @@
-use crate::dto::IntoDTO;
 use crate::error::ApiError;
+use crate::models::oauth_client::OAuthClient;
 use crate::repositories::oauth_clients::OauthClientsRepository;
-use crate::repositories::Repository;
+use crate::traits::into_dto::IntoDTO;
+use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
+use actix_oauth::dto::OAuthClientDTOCollection;
 use actix_web::web;
 
 generate_endpoint! {
@@ -10,6 +12,7 @@ generate_endpoint! {
     fn get_clients;
     method: get;
     path: "";
+    return_type: OAuthClientDTOCollection;
     error: ApiError;
     docs: {
         tag: "Client",
@@ -19,7 +22,7 @@ generate_endpoint! {
         repository: web::Data<OauthClientsRepository>
     }
     {
-        let clients = repository.get_all().await?;
-        Ok(web::Json(clients.into_dto()))
+        let clients: Vec<OAuthClient> = repository.get_all().await?;
+        Ok(clients.into_dto())
     }
 }
