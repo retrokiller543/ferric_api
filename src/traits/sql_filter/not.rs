@@ -1,27 +1,18 @@
-use crate::traits::SqlFilter;
-use sqlx::{Postgres, QueryBuilder};
+use super::sql_delimiter;
 
-pub struct Not<T> {
-    pub(crate) inner: T,
-}
-
-impl<'args, T: 'args> Not<T> {
-    pub fn new(expr: T) -> Self {
-        Self { inner: expr }
+sql_delimiter! {
+    pub struct Not<T> {
+        pub inner: T,
     }
-}
 
-impl<'args, T: SqlFilter<'args> + 'args> SqlFilter<'args> for Not<T> {
-    #[inline]
-    fn apply_filter(self, builder: &mut QueryBuilder<'args, Postgres>) {
-        if self.should_apply_filter() {
+    apply_filter(s, builder) {
+        if s.should_apply_filter() {
             builder.push("NOT ");
-            self.inner.apply_filter(builder);
+            s.inner.apply_filter(builder);
         }
     }
 
-    #[inline]
-    fn should_apply_filter(&self) -> bool {
-        self.inner.should_apply_filter()
+    should_apply_filter(s) {
+        s.inner.should_apply_filter()
     }
 }
