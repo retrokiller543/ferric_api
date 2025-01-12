@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/actix-oauth/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/actix-oauth-macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sqlx-filter-macro/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/actix-oauth/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/postgres_data" />

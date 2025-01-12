@@ -1,5 +1,6 @@
 use crate::openapi::ApiDocs;
 use crate::statics::BASE_URL;
+use crate::ServerResult;
 use actix_web::{web, HttpResponse, Responder};
 use tracing::warn;
 use utoipa::OpenApi;
@@ -12,8 +13,10 @@ pub(crate) mod v1;
 
 /// All API endpoints
 #[inline]
-pub(crate) fn api() -> impl actix_web::dev::HttpServiceFactory {
-    web::scope("/api").service(v1::v1_service()).service(docs())
+pub(crate) async fn api() -> ServerResult<impl actix_web::dev::HttpServiceFactory> {
+    Ok(web::scope("/api")
+        .service(v1::v1_service().await?)
+        .service(docs()))
 }
 
 /// Only real reason we have this is to be able to put scoped middlewares for the docs, for example we can add auth middleware to secure the docs

@@ -36,7 +36,7 @@ macro_rules! dto {
             $($(#[$field_meta:meta])* $field_vis:vis $field:ident: $field_type:ty),*
         }
     } => {
-        crate::dto! {
+        $crate::dto! {
             $(#[$meta])*
             $vis struct $ident$(<$($lifetime,)? $($generic),*>)? {
                 $($(#[$field_meta])* $field_vis $field: $field_type),*
@@ -44,7 +44,7 @@ macro_rules! dto {
         }
 
         ::paste::paste! {
-            impl$(<$($lifetime $(,)?)? $($generic),*>)? crate::traits::FromModel<Vec<$model$(<$($lifetime $(,)?)? $($generic),*>)?>> for [<$ident Collection>]$(<$($lifetime $(,)?)? $($generic),*>)? {
+            impl$(<$($lifetime $(,)?)? $($generic),*>)? $crate::traits::FromModel<Vec<$model$(<$($lifetime $(,)?)? $($generic),*>)?>> for [<$ident Collection>]$(<$($lifetime $(,)?)? $($generic),*>)? {
                 fn from_model(model: Vec<$model$(<$($lifetime $(,)?)? $($generic),*>)?>) -> Self {
                     let dto: Vec<_> = model.into_dto();
                     dto.into()
@@ -61,14 +61,14 @@ macro_rules! dto {
 
         $($tt:tt)*
     } => {
-        crate::dto! {
+        $crate::dto! {
             $(#[$meta])*
             $vis struct $ident$(<$($lifetime,)? $($generic),*>)? => $model {
                 $($(#[$field_meta])* $field_vis $field: $field_type),*
             }
         }
 
-        impl$(<$($lifetime $(,)?)? $($generic),*>)? crate::traits::FromModel<$model$(<$($lifetime $(,)?)? $($generic),*>)?> for $ident {
+        impl$(<$($lifetime $(,)?)? $($generic),*>)? $crate::traits::FromModel<$model$(<$($lifetime $(,)?)? $($generic),*>)?> for $ident {
             $($tt)*
         }
     };

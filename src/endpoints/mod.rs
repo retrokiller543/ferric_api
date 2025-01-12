@@ -16,12 +16,15 @@ pub(crate) mod health;
 mod not_found;
 mod test;
 
+use crate::ServerResult;
 pub(crate) use health::*;
 
 #[inline]
-pub(crate) fn index_scope() -> impl actix_web::dev::HttpServiceFactory {
-    web::scope("")
+pub(crate) fn index_scope() -> ServerResult<impl actix_web::dev::HttpServiceFactory> {
+    let service = futures::executor::block_on(api())?;
+
+    Ok(web::scope("")
         .service(health::health)
-        .service(api())
-        .default_service(web::to(not_found::not_found))
+        .service(service)
+        .default_service(web::to(not_found::not_found)))
 }

@@ -12,8 +12,9 @@ macro_rules! app {
     (
         $(state: [$($state_ident:expr),* $(,)?];)?
         $(service: [$($service_ident:expr),* $(,)?];)?
+        $(configure: [$($config:expr),* $(,)?];)?
         $(wrap: [$($wrap_ident:expr),* $(,)?];)?
-    ) => {{
+    ) => {
         ::actix_web::App::new()
         $(
             $(.app_data($state_ident.clone()))*
@@ -22,9 +23,12 @@ macro_rules! app {
             $(.service($service_ident))*
         )?
         $(
+            $(.configure($config))*
+        )?
+        $(
             $(.wrap($wrap_ident))*
         )?
-    }};
+    };
 }
 
 pub(crate) use app;

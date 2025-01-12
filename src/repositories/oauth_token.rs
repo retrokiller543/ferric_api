@@ -1,8 +1,22 @@
 use crate::models::oauth_token::OAuthToken;
 use crate::repositories::repository;
 use crate::traits::model::Model;
+use crate::traits::{Repository, SqlFilter};
 use crate::ApiResult;
-use sqlx::{query, query_as};
+use sqlx::{query, query_as, QueryBuilder};
+use sqlx_filter_macro::sql_filter;
+use uuid::Uuid;
+
+sql_filter! {
+    pub struct OauthTokenFilter {
+        SELECT * FROM oauth_token
+        WHERE
+            ?token = String
+            AND ?user_ext_id = Uuid
+            AND token_type as token_types IN Vec<String>
+            AND expires_at > "CURRENT_TIMESTAMP"
+    }
+}
 
 repository! {
     pub(crate) OauthTokenRepository<OAuthToken>;
@@ -19,6 +33,8 @@ repository! {
             model.expires_at,
         )
     };
+
+    type Filter<'args> = OauthTokenFilter;
 
     #[tracing::instrument(skip_all, level = "debug")]
     async fn get_by_id(&self, id: impl Into<i64>) -> ApiResult<Option<OAuthToken>> {
@@ -42,6 +58,24 @@ repository! {
             .fetch_optional(self.pool)
             .await?
         )
+    }
+
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn get_by_any_filter(&self, filter: impl SqlFilter<'_>) -> ApiResult<Vec<OAuthToken>> {
+        let mut query = QueryBuilder::new("SELECT * FROM oauth_token WHERE ");
+
+        filter.apply_filter(&mut query);
+
+        Ok(query.build_query_as().fetch_all(self.pool).await?)
+    }
+
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn get_by_filter(&self, filter: Self::Filter<'_>) -> ApiResult<Vec<OAuthToken>> {
+        let mut query = QueryBuilder::new("SELECT * FROM oauth_token WHERE ");
+
+        filter.apply_filter(&mut query);
+
+        Ok(query.build_query_as().fetch_all(self.pool).await?)
     }
 
     #[tracing::instrument(skip_all, level = "debug")]
@@ -95,5 +129,39 @@ repository! {
         // Execute the query within the transaction
         q.execute(self.pool).await?;
         Ok(())
+    }
+}
+
+impl OauthTokenRepository {
+    #[tracing::instrument(skip_all)]
+    pub(crate) async fn get_by_token(
+        &self,
+        token: impl Into<String>,
+    ) -> ApiResult<Option<OAuthToken>> {
+        let token = token.into();
+
+        Ok(query_as!(
+            OAuthToken,
+            "SELECT
+                id,
+                token,
+                client_id,
+                user_ext_id,
+                token_type as \"token_type: _\",
+                scopes,
+                expires_at,
+                created_at
+             FROM oauth_token WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP",
+            token
+        )
+        .fetch_optional(self.pool)
+        .await?)
+    }
+
+    pub(crate) async fn get_by_filter(
+        &self,
+        filter: OauthTokenFilter,
+    ) -> ApiResult<Vec<OAuthToken>> {
+        self.get_by_any_filter(filter).await
     }
 }

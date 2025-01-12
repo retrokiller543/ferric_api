@@ -2,6 +2,8 @@
 
 use crate::repositories::PgQuery;
 use crate::traits::model::Model;
+use crate::traits::sql_filter::SqlFilter;
+use crate::traits::NoOpFilter;
 use crate::utils::batch::{BatchOperator, DEFAULT_BATCH_SIZE};
 use crate::ApiResult;
 use sqlx::PgPool;
@@ -138,6 +140,8 @@ pub trait Repository<M>
 where
     M: Model,
 {
+    type Filter<'args>: SqlFilter<'args> = NoOpFilter;
+
     /// Gets a reference to the database connection pool used by this repository.
     ///
     /// The pool is a fundamental component that manages database connections efficiently,
@@ -241,6 +245,18 @@ where
     /// memory and impact database performance. Consider implementing pagination instead.
     #[tracing::instrument(skip_all, level = "debug")]
     async fn get_all(&self) -> ApiResult<Vec<M>> {
+        unimplemented!("This method has not been implemented for this repository")
+    }
+
+    /// Gets by a filter
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn get_by_any_filter(&self, _filter: impl SqlFilter<'_>) -> ApiResult<Vec<M>> {
+        unimplemented!("This method has not been implemented for this repository")
+    }
+
+    /// Gets by a filter
+    #[tracing::instrument(skip_all, level = "debug")]
+    async fn get_by_filter(&self, _filter: Self::Filter<'_>) -> ApiResult<Vec<M>> {
         unimplemented!("This method has not been implemented for this repository")
     }
 

@@ -10,12 +10,11 @@ macro_rules! server {
             let cors = crate::config::cors();
             let error_handler = actix_web::middleware::ErrorHandlers::new()
                 .default_handler(crate::error::default_error_handler);
-            let index_scope = crate::endpoints::index_scope();
+            let index_scope = crate::endpoints::index_scope().expect("Failed to construct Index Scope");
 
             crate::setup::app::app!(state: [state, oauth_client_repo, users_repository]; service: [index_scope]; wrap: [error_handler, cors];)
         })
     }};
 }
-//crate::setup::app::app!(state, cors, error_handler)
 
 pub(crate) use server;

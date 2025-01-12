@@ -1,6 +1,8 @@
 use crate::dto::{UserDTOCollection, UserDTOVecResponses};
 use crate::error::ApiError;
-use crate::repositories::users::UsersRepository;
+use crate::middleware::AuthMiddleware;
+use crate::repositories::oauth_token::get_oauth_token_repository;
+use crate::repositories::users::{get_users_repository, UsersRepository};
 use crate::traits::into_dto::IntoDTO;
 use crate::traits::repository::Repository;
 use crate::utils::api_scope;
@@ -13,6 +15,12 @@ api_scope! {
     pub(super) users_get = "";
 
     guard: Get;
+    middleware: [auth: || async {
+        let token_repo = get_oauth_token_repository().await?;
+        let user_repo = get_users_repository().await?;
+
+        Ok::<_, ApiError>(AuthMiddleware::new(token_repo, user_repo))
+    }];
     paths: [get_users, by_id::get_user_by_id];
 }
 

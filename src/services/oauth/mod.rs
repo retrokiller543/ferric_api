@@ -1,7 +1,7 @@
 use crate::models::oauth_token::{OAuthToken, TokenType};
 use crate::repositories::oauth_token::get_oauth_token_repository;
 use crate::traits::repository::Repository;
-use crate::ApiResult;
+use crate::{ApiResult, ServerResult};
 use actix_oauth::dto::TokenResponse;
 use actix_oauth::handler::{OAuth2Handler, OAuth2HandlerBuilder};
 use chrono::{Local, TimeDelta};
@@ -10,10 +10,10 @@ use uuid::Uuid;
 mod password_handler;
 
 #[inline]
-pub(crate) fn oauth_handler() -> OAuth2Handler {
-    OAuth2HandlerBuilder::new()
+pub(crate) async fn oauth_handler() -> ServerResult<OAuth2Handler> {
+    Ok(OAuth2HandlerBuilder::new()
         .password_handler(password_handler::password_handler)
-        .build()
+        .build())
 }
 
 async fn create_token_response(user_ext_id: Uuid) -> ApiResult<TokenResponse> {

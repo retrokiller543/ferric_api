@@ -125,6 +125,7 @@ macro_rules! api_scope {
 
         $(guard: $guard_ident:ident;)?
         $(services: [$($service:ident),* $(,)?] ;)?
+        $(middleware: [$($middleware:ident: $expr:expr),* $(,)?];)?
         $(paths: [$($path:path),* $(,)?] ;)?
 
         docs: {
@@ -159,7 +160,7 @@ macro_rules! api_scope {
                     .service(::utoipa_scalar::Scalar::with_url("/scalar", openapi.clone()))
             }
 
-            crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( paths: [$($path),*] ; )?
+            crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?
                 docs: {
                     $(extra_paths: [$($extra_path),*];)?
                     $(tags: [$($tag),*];)?
@@ -177,6 +178,7 @@ macro_rules! api_scope {
 
         $(guard: $guard_ident:ident;)?
         $(services: [$($service:ident),* $(,)?];)?
+        $(middleware: [$($middleware:ident: $expr:expr),* $(,)?];)?
         $(paths: [$($path:path),* $(,)?];)?
 
         docs: {
@@ -214,20 +216,25 @@ macro_rules! api_scope {
             $vis struct [<$ident:camel API>];
         }
 
-        crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( paths: [$($path),*] ; )?}
+        crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?}
     };
 
     {
         $vis:vis $ident:ident = $endpoint:literal;
 
         $(guard: $guard_ident:ident;)?
-        $( services: [$($service:ident),* $(,)?] ; )?
-        $( paths: [$($path:path),* $(,)?] ; )?
+        $(services: [$($service:ident),* $(,)?];)?
+        $(middleware: [$($middleware:ident: $expr:expr),* $(,)?];)?
+        $(paths: [$($path:path),* $(,)?];)?
     } => {
         ::paste::paste! {
             #[inline]
-            $vis fn [<$ident:snake _service>]() -> impl ::actix_web::dev::HttpServiceFactory {
-                ::actix_web::web::scope($endpoint)
+            $vis async fn [<$ident:snake _service>]() -> crate::ServerResult<impl ::actix_web::dev::HttpServiceFactory> {
+                $(
+                    $(let $middleware = $expr;)*
+                )?
+
+                Ok(::actix_web::web::scope($endpoint)
                 $(
                     .guard(::actix_web::guard::$guard_ident())
                 )?
@@ -238,9 +245,14 @@ macro_rules! api_scope {
                 )?
                 $(
                     $(
-                        .service($service())
+                        .service($service().await?)
                     )*
                 )?
+                $(
+                    $(
+                        .wrap(($middleware)().await?)
+                    )*
+                )?)
             }
         }
     };
