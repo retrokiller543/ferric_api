@@ -1,54 +1,32 @@
-use crate::traits::SqlFilter;
-use sqlx::{Postgres, QueryBuilder};
+use super::sql_delimiter;
 
-pub struct Or<L, R> {
-    pub left: L,
-    pub right: R,
-}
-
-impl<'args, L: SqlFilter<'args> + 'args, R: SqlFilter<'args> + 'args> Or<L, R> {
-    #[inline]
-    pub fn new(left: L, right: R) -> Self {
-        Self { left, right }
+sql_delimiter! {
+    pub struct Or<L, R> {
+        pub left: L,
+        pub right: R
     }
-}
 
-impl<'args, L: SqlFilter<'args> + 'args, R: SqlFilter<'args> + 'args> SqlFilter<'args>
-    for Or<L, R>
-{
-    #[inline]
-    fn apply_filter(self, builder: &mut QueryBuilder<'args, Postgres>) {
+    apply_filter(s, builder) {
         match (
-            self.left.should_apply_filter(),
-            self.right.should_apply_filter(),
+            s.left.should_apply_filter(),
+            s.right.should_apply_filter(),
         ) {
             (true, true) => {
-                self.left.apply_filter(builder);
+                s.left.apply_filter(builder);
                 builder.push(" OR ");
-                self.right.apply_filter(builder);
+                s.right.apply_filter(builder);
             }
             (true, false) => {
-                self.left.apply_filter(builder);
+                s.left.apply_filter(builder);
             }
             (false, true) => {
-                self.right.apply_filter(builder);
+                s.right.apply_filter(builder);
             }
-            (false, false) => {
-                // Do nothing
-            }
+            (false, false) => {}
         }
     }
 
-    #[inline]
-    fn should_apply_filter(&self) -> bool {
-        match (
-            self.left.should_apply_filter(),
-            self.right.should_apply_filter(),
-        ) {
-            (true, true) => true,
-            (true, false) => true,
-            (false, true) => true,
-            (false, false) => false,
-        }
+    should_apply_filter(s) {
+        s.left.should_apply_filter() || s.right.should_apply_filter()
     }
 }

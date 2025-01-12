@@ -88,23 +88,23 @@ macro_rules! sql_operator {
             }
         }
 
-        impl<'args, T> $crate::traits::SqlFilter<'args> for $ident<T>
-        where
-            T: ::sqlx::Type<::sqlx::Postgres> + ::sqlx::Encode<'args, ::sqlx::Postgres> + 'args,
-        {
-            #[inline]
-            fn apply_filter(self, builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>) {
-                if let Some(val) = self.value {
-                    builder.push(self.column);
+        $crate::traits::sql_impl! {
+            $ident<T>;
+
+            apply_filter(s, builder) {
+                if let Some(val) = s.value {
+                    builder.push(s.column);
                     builder.push(concat!(" ", $lit, " "));
                     builder.push_bind(val);
                 }
             }
 
-            #[inline]
-            fn should_apply_filter(&self) -> bool {
-                self.value.is_some()
+            should_apply_filter(s) {
+                s.value.is_some()
             }
+
+            where
+                T: ::sqlx::Type<::sqlx::Postgres> + ::sqlx::Encode<'args, ::sqlx::Postgres>
         }
 
         impl<'args> $crate::traits::SqlFilter<'args> for $ident<$crate::traits::sql_filter::Raw>
@@ -165,19 +165,19 @@ macro_rules! sql_operator {
             }
         }
 
-        impl<'args> $crate::traits::SqlFilter<'args> for $ident {
-            #[inline]
-            fn apply_filter(self, builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>) {
-                if let Some(value) = self.value {
-                    builder.push(self.column);
+        $crate::traits::sql_impl! {
+            $ident;
+
+            apply_filter(s, builder) {
+                if let Some(value) = s.value {
+                    builder.push(s.column);
                     builder.push(concat!(" ", $lit, " "));
                     builder.push_bind(value);
                 }
             }
 
-            #[inline]
-            fn should_apply_filter(&self) -> bool {
-                self.value.is_some()
+            should_apply_filter(s) {
+                s.value.is_some()
             }
         }
 
@@ -220,21 +220,19 @@ macro_rules! sql_operator {
             }
         }
 
-        impl<'args, T> $crate::traits::SqlFilter<'args> for $ident<T>
-        where
-            T: ::sqlx::Type<::sqlx::Postgres> + ::sqlx::Encode<'args, ::sqlx::Postgres> + 'args,
-        {
-            #[inline]
-            fn apply_filter(self, builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>)  {
-                if !self.should_apply_filter()  {
+        $crate::traits::sql_impl! {
+            $ident<T>;
+
+            apply_filter(s, builder) {
+                if !s.should_apply_filter()  {
                     return;
                 }
 
-                builder.push(self.column);
+                builder.push(s.column);
                 builder.push(concat!(" ", $lit, " ("));
 
                 let mut first = true;
-                for val in self.values {
+                for val in s.values {
                     if !first {
                         builder.push(", ");
                     }
@@ -245,10 +243,12 @@ macro_rules! sql_operator {
                 builder.push(")");
             }
 
-            #[inline]
-            fn should_apply_filter(&self) -> bool {
-                !self.values.is_empty()
+            should_apply_filter(s) {
+                !s.values.is_empty()
             }
+
+            where
+                T: ::sqlx::Type<::sqlx::Postgres> + ::sqlx::Encode<'args, ::sqlx::Postgres>
         }
 
         ::paste::paste! {
@@ -278,16 +278,10 @@ macro_rules! sql_operator {
             }
         }
 
-        impl<'args> $crate::traits::SqlFilter<'args> for $ident {
-            #[inline]
-            fn apply_filter(self, _: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>) {
-                // no-op
-            }
-
-            #[inline]
-            fn should_apply_filter(&self) -> bool {
-                false
-            }
+        $crate::traits::sql_impl! {
+            $ident;
+            apply_filter(_, _) {}
+            should_apply_filter(_) { false }
         }
 
         ::paste::paste! {
@@ -304,9 +298,127 @@ macro_rules! sql_operator {
     };
 }
 
+// Now let's refactor sql_delimiter to use sql_impl
+macro_rules! sql_delimiter {
+    {
+        $(#[$struct_meta:meta])*
+        $vis:vis struct $ident:ident $(<
+            $($lt:lifetime,)*
+            $($generic:ident $(: $($generic_bound:tt)+)?),*
+            $(,)?
+        >)? {
+            $(
+                $(#[$field_meta:meta])*
+                $field_vis:vis $field_ident:ident: $field_ty:ty
+            ),* $(,)?
+        }
+
+        $apply_filter:ident ($apply_self:ident, $builder:ident) $apply_block:block
+        $should_apply_filter:ident($should_self:ident) $should_apply_block:block
+        $(where $($where_clause:tt)+)?
+    } => {
+        $(#[$struct_meta])*
+        $vis struct $ident$(<$($lt,)* $($generic),*>)? {
+            $(
+                $(#[$field_meta])*
+                $field_vis $field_ident: $field_ty
+            ),*
+        }
+
+        impl$(<$($lt,)* $($generic),*>)? $ident$(<$($lt,)* $($generic),*>)?
+        $(where $($where_clause)+)?
+        {
+            #[inline]
+            $vis fn new($($field_ident: $field_ty),*) -> Self {
+                Self { $($field_ident),* }
+            }
+        }
+
+        $crate::traits::sql_impl! {
+            $ident$(<$($lt,)* $($generic),*>)?;
+            $apply_filter($apply_self, $builder) $apply_block
+            $should_apply_filter($should_self) $should_apply_block
+            $(where
+                $($generic: $crate::traits::SqlFilter<'args>),*)?
+        }
+    };
+}
+
+macro_rules! sql_impl {
+    // Base case with explicit lifetime bounds and where clauses
+    {
+        $ident:ident $(<
+            $($lt:lifetime,)*
+            $($generic:ident $(: $($generic_bound:tt)+)?),*
+            $(,)?
+        >)?;
+        $apply_filter:ident ($apply_self:ident, $builder:ident) $apply_block:block
+        $should_apply_filter:ident($should_self:ident) $should_apply_block:block
+        $(where $($where_clause:tt)+)?
+    } => {
+        impl<'args $(, $($lt,)* $($generic),*)?> $crate::traits::SqlFilter<'args>
+            for $ident$(<$($lt,)* $($generic),*>)?
+        where
+            $($($generic: $($($generic_bound)+ +)? 'args,)*)?
+            $($($where_clause)+)?
+        {
+            #[inline]
+            fn $apply_filter(self, builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>) {
+                let filter_impl = |$apply_self: Self, $builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>|
+                    $apply_block;
+                filter_impl(self, builder)
+            }
+
+            #[inline]
+            fn $should_apply_filter(&self) -> bool {
+                let should_apply_impl = |$should_self: &Self| $should_apply_block;
+                should_apply_impl(self)
+            }
+        }
+    };
+
+    // Shorthand case for simple SqlFilter bounds
+    {
+        $ident:ident $(<$($lt:lifetime,)* $($generic:ident),* $(,)?>)?;
+        $apply_filter:ident ($apply_self:ident, $builder:ident) $apply_block:block
+        $should_apply_filter:ident($should_self:ident) $should_apply_block:block
+    } => {
+        $crate::traits::sql_impl! {
+            $ident$(<$($lt,)* $($generic: $crate::traits::SqlFilter<'args>),*>)?;
+            $apply_filter($apply_self, $builder) $apply_block
+            $should_apply_filter($should_self) $should_apply_block
+            where
+        }
+    };
+
+    {
+        $ident:ident $(<$($lt:lifetime)? $(,)? $($generic:ident),* $(,)?>)?;
+        $apply_filter:ident (_, _) $apply_block:block
+        $should_apply_filter:ident(_) $should_apply_block:block
+    } => {
+        impl<'args, $($($lt,)? $($generic),*)?> $crate::traits::SqlFilter<'args> for $ident$(<$($lt,)? $($generic),*>)?
+        $(where
+            $($generic: $crate::traits::SqlFilter<'args> + 'args),*)?
+        {
+            #[inline]
+            fn $apply_filter(self, builder: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>) {
+                let filter_impl = |_: Self, _: &mut ::sqlx::QueryBuilder<'args, ::sqlx::Postgres>| $apply_block;
+                filter_impl(self, builder);
+            }
+
+            #[inline]
+            fn $should_apply_filter(&self) -> bool {
+                let should_apply_impl = |_: &Self| $should_apply_block;
+                should_apply_impl(self)
+            }
+        }
+    };
+}
+
 sql_operator!(pub NoOpFilter);
 use crate::mod_def;
 pub(crate) use sql_operator;
+pub(crate) use {sql_delimiter, sql_impl};
 
 pub trait SqlFilter<'args> {
     fn apply_filter(self, builder: &mut QueryBuilder<'args, Postgres>);

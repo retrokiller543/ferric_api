@@ -61,13 +61,9 @@ define_middleware! {
             let token = auth_header
                 .to_str()
                 .map_err(|_| AuthError::InvalidToken)?;
-//token = $1 AND expires_at > CURRENT_TIMESTAMP
+
             let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new([]).token(token)).await?;
             let token_model = token_res.first().cloned();
-            /*let token_model = service.token_repo
-                .get_by_token(token)
-                .await
-                .map_err(|_| AuthError::InternalError)?;*/
 
             let token = token_model.ok_or(AuthError::InvalidToken)?;
 
