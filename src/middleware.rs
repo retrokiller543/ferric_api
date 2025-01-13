@@ -62,7 +62,7 @@ define_middleware! {
                 .to_str()
                 .map_err(|_| AuthError::InvalidToken)?;
 
-            let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new([]).token(token)).await?;
+            let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new().token(token)).await?;
             let token_model = token_res.first().cloned();
 
             let token = token_model.ok_or(AuthError::InvalidToken)?;

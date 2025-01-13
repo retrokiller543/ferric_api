@@ -2,10 +2,10 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Ident, LitStr, MetaList, Token, Type, TypePath, Visibility, braced, parse_quote};
+use syn::{Attribute, Ident, LitStr, Token, Type, TypePath, Visibility, braced, parse_quote};
 
 pub(crate) struct FilterTable {
-    pub(crate) meta: Option<MetaList>,
+    pub(crate) meta: Vec<Attribute>,
     pub(crate) vis: Option<Visibility>,
     pub(crate) name: Ident,
     pub(crate) sql: FilterSql,
@@ -100,7 +100,7 @@ impl ToTokens for FilterTable {
         };
 
         let struct_def = quote! {
-            #meta
+            #(#meta)*
             #vis struct #name {
                 #(#token_fields,)*
             }
@@ -150,7 +150,7 @@ impl ToTokens for FilterTable {
 
 impl Parse for FilterTable {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let meta = input.parse().ok();
+        let meta = input.call(Attribute::parse_outer)?;
         let vis = input.parse().ok();
         input.parse::<Token![struct]>()?;
         let name = input.parse()?;
@@ -380,7 +380,11 @@ impl ToTokens for Expression {
                 } else {
                     let rust_name = c.rust_name();
 
-                    quote! { #operator(stringify!(#column), self.#rust_name) }
+                    if c.optional {
+                        quote! { #operator(stringify!(#column), self.#rust_name) }
+                    } else {
+                        quote! { #operator(stringify!(#column), Some(self.#rust_name)) }
+                    }
                 }
             }
             Expression::And(l, r) => quote! { #l.and(#r) },

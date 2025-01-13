@@ -8,12 +8,13 @@ use sqlx_filter_macro::sql_filter;
 use uuid::Uuid;
 
 sql_filter! {
+    #[derive(Default, Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
     pub struct OauthTokenFilter {
         SELECT * FROM oauth_token
         WHERE
             ?token = String
             AND ?user_ext_id = Uuid
-            AND token_type as token_types IN Vec<String>
+            AND ?token_type as token_types IN Vec<String>
             AND expires_at > "CURRENT_TIMESTAMP"
     }
 }
