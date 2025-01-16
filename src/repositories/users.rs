@@ -12,11 +12,11 @@ use sqlx::{query, query_as, PgPool};
 use tracing::error;
 
 repository! {
-    pub(crate) UsersRepository;
+    pub UsersRepository;
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct UserSearchParams {
+pub struct UserSearchParams {
     pub username_contains: Option<String>,
     pub email_contains: Option<String>,
     pub created_after: Option<NaiveDateTime>,

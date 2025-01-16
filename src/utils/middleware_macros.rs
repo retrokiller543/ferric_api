@@ -16,6 +16,7 @@
 ///     }
 /// }
 /// ```
+#[macro_export]
 macro_rules! define_middleware {
     (
         $(#[$meta:meta])*

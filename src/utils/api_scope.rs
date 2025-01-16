@@ -117,6 +117,7 @@
 ///
 /// Each rule processes its input differently while maintaining consistent
 /// output structure and functionality.
+#[macro_export]
 macro_rules! api_scope {
     {
         $vis:vis $ident:ident = $endpoint:literal;

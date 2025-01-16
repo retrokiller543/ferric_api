@@ -1,3 +1,4 @@
+use crate::error::ServerError;
 use crate::statics::{DATABASE_URL, DB_POOL};
 use crate::ServerResult;
 use sqlx::postgres::PgPoolOptions;
@@ -19,6 +20,7 @@ pub(crate) async fn db_pool() -> ServerResult<PgPool> {
 
 #[inline(always)]
 #[tracing::instrument]
-pub(crate) async fn get_db_pool() -> ServerResult<&'static PgPool> {
-    DB_POOL.get_or_try_init(db_pool).await
+pub async fn get_db_pool() -> ServerResult<&'static PgPool> {
+    /*DB_POOL.get_or_try_init(db_pool).await*/
+    Err(ServerError::Basic(String::from("Shit hit the fan")))
 }

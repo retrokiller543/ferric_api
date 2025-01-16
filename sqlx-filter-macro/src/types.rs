@@ -2,12 +2,23 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Attribute, Ident, LitStr, Token, Type, TypePath, Visibility, braced, parse_quote};
+use syn::token::Brace;
+use syn::{Attribute, Ident, LitStr, Token, Type, TypePath, Visibility, parse_quote};
+use syn_derive::Parse;
 
+#[derive(Parse)]
+#[allow(dead_code)]
 pub(crate) struct FilterTable {
+    #[parse(Attribute::parse_outer)]
     pub(crate) meta: Vec<Attribute>,
-    pub(crate) vis: Option<Visibility>,
+    pub(crate) vis: Visibility,
+    _struct: Token![struct],
     pub(crate) name: Ident,
+
+    #[syn(braced)]
+    _brace: Brace,
+
+    #[syn(in = _brace)]
     pub(crate) sql: FilterSql,
 }
 
@@ -18,6 +29,7 @@ impl ToTokens for FilterTable {
             vis,
             name,
             sql,
+            ..
         } = self;
 
         let fields = sql.expr.fields();
@@ -148,33 +160,6 @@ impl ToTokens for FilterTable {
     }
 }
 
-impl Parse for FilterTable {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let meta = input.call(Attribute::parse_outer)?;
-        let vis = input.parse().ok();
-        input.parse::<Token![struct]>()?;
-        let name = input.parse()?;
-
-        let content;
-        braced!(content in input);
-        let sql = content.parse()?;
-
-        if !input.is_empty() {
-            println!(
-                "Unexpected tokens after SQL: {}",
-                input.fork().parse::<proc_macro2::TokenStream>()?
-            );
-        }
-
-        Ok(Self {
-            meta,
-            vis,
-            name,
-            sql,
-        })
-    }
-}
-
 /// Parses either `*` or `a, b, c as c_example`
 pub(crate) enum Columns {
     All,
@@ -232,7 +217,7 @@ impl Parse for Columns {
 #[allow(dead_code)]
 pub(crate) struct FilterSql {
     pub(crate) columns: Columns,
-    pub(crate) table_name: String,
+    pub(crate) table_name: Ident,
     pub(crate) expr: Expression,
 }
 
@@ -264,7 +249,7 @@ impl Parse for FilterSql {
 
         Ok(FilterSql {
             columns,
-            table_name: table_name.to_string(),
+            table_name,
             expr,
         })
     }
@@ -307,10 +292,10 @@ impl Parse for ColumnVal {
 }
 
 pub(crate) enum Expression {
-    Condition(Condition),
     And(Box<Expression>, Box<Expression>),
     Or(Box<Expression>, Box<Expression>),
     Not(Box<Expression>),
+    Condition(Condition),
 }
 
 impl Expression {
@@ -561,20 +546,21 @@ impl Parse for SqlOperator {
 impl ToTokens for SqlOperator {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         match self {
-            SqlOperator::Equals => quote! {crate::traits::equals}.to_tokens(tokens),
-            SqlOperator::NotEquals => quote! {crate::traits::not_equal}.to_tokens(tokens),
-            SqlOperator::GreaterThan => quote! {crate::traits::greater_than}.to_tokens(tokens),
-            SqlOperator::LessThan => quote! {crate::traits::less_than}.to_tokens(tokens),
+            SqlOperator::Equals => quote! {crate::traits::equals},
+            SqlOperator::NotEquals => quote! {crate::traits::not_equal},
+            SqlOperator::GreaterThan => quote! {crate::traits::greater_than},
+            SqlOperator::LessThan => quote! {crate::traits::less_than},
             SqlOperator::GreaterThanOrEqual => {
-                quote! {crate::traits::greater_than_or_equal}.to_tokens(tokens)
+                quote! {crate::traits::greater_than_or_equal}
             }
             SqlOperator::LessThanOrEqual => {
-                quote! {crate::traits::less_than_or_equal}.to_tokens(tokens)
+                quote! {crate::traits::less_than_or_equal}
             }
-            SqlOperator::Like => quote! {crate::traits::like}.to_tokens(tokens),
-            SqlOperator::ILike => quote! {crate::traits::i_like}.to_tokens(tokens),
-            SqlOperator::In => quote! {crate::traits::in_values}.to_tokens(tokens),
-            SqlOperator::NotIn => quote! {crate::traits::not_in_values}.to_tokens(tokens),
+            SqlOperator::Like => quote! {crate::traits::like},
+            SqlOperator::ILike => quote! {crate::traits::i_like},
+            SqlOperator::In => quote! {crate::traits::in_values},
+            SqlOperator::NotIn => quote! {crate::traits::not_in_values},
         }
+        .to_tokens(tokens)
     }
 }

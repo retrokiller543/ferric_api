@@ -20,7 +20,7 @@ use crate::ServerResult;
 pub(crate) use health::*;
 
 #[inline]
-pub(crate) fn index_scope() -> ServerResult<impl actix_web::dev::HttpServiceFactory> {
+pub fn index_scope() -> ServerResult<impl actix_web::dev::HttpServiceFactory> {
     let service = futures::executor::block_on(api())?;
 
     Ok(web::scope("")

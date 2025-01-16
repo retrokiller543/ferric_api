@@ -79,6 +79,7 @@ argon2 = { version =  "0.5.3", features = ["std"] }
 paste = "1.0.15"
 async-trait = "0.1.85"
 sqlx-filter-macro = { path = "sqlx-filter-macro" }
+itertools = "0.14.0"
 
 [build-dependencies]
 sqlx = { workspace = true }

@@ -16,7 +16,7 @@ use crate::dto::Error;
 /// Error that could occur when the API is running and need to be sent back to the client
 #[derive(Error, Debug)]
 #[allow(dead_code)]
-pub(crate) enum ApiError {
+pub enum ApiError {
     #[error("Error: {0}")]
     Basic(String),
     #[error(transparent)]
@@ -33,7 +33,7 @@ pub(crate) enum ApiError {
 /// Errors that occurs on the server level and could cause the entire server to go down
 #[derive(Error, Debug)]
 #[allow(dead_code)]
-pub(crate) enum ServerError {
+pub enum ServerError {
     #[error("Error: {0}")]
     Basic(String),
     #[error(transparent)]
@@ -84,7 +84,7 @@ impl ResponseError for ApiError {
     }
 }
 
-pub(crate) fn default_error_handler<B: MessageBody + 'static>(
+pub fn default_error_handler<B: MessageBody + 'static>(
     res: ServiceResponse<B>,
 ) -> actix_web::Result<ErrorHandlerResponse<BoxBody>> {
     let (req, res) = res.into_parts();

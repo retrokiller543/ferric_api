@@ -5,11 +5,11 @@ use sqlx::query::Query;
 use sqlx::Postgres;
 
 mod filter;
-pub(crate) mod oauth_clients;
-pub(crate) mod oauth_token;
-pub(crate) mod users;
+pub mod oauth_clients;
+pub mod oauth_token;
+pub mod users;
 
-pub(crate) type PgQuery<'a> = Query<'a, Postgres, PgArguments>;
+pub type PgQuery<'a> = Query<'a, Postgres, PgArguments>;
 
 /// Creates a new database repository, either just creates a basic new type and statics to interact
 /// with the main database pool.
@@ -19,8 +19,8 @@ pub(crate) type PgQuery<'a> = Query<'a, Postgres, PgArguments>;
 /// # Examples
 ///
 /// ```
-/// use crate::repositories::repository;
-/// use crate::models::Model;
+/// use ferric_api::repositories::repository;
+/// use ferric_api::traits::Model;
 ///
 ///
 /// struct Person {

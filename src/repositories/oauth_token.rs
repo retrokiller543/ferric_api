@@ -20,7 +20,7 @@ sql_filter! {
 }
 
 repository! {
-    pub(crate) OauthTokenRepository<OAuthToken>;
+    pub OauthTokenRepository<OAuthToken>;
 
     insert_one(model) {
         query!(

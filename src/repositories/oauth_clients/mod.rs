@@ -6,7 +6,7 @@ use actix_oauth::types::GrantType;
 use sqlx::{query, query_as};
 
 repository! {
-    pub(crate) OauthClientsRepository<OAuthClient>;
+    pub OauthClientsRepository<OAuthClient>;
 
     #[inline]
     fn insert_one(client: &OAuthClient) -> PgQuery<'_> {
