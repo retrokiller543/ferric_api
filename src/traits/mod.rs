@@ -5,21 +5,6 @@
 use crate::mod_def;
 
 mod_def! {
-    pub mod repository;
-}
-
-mod_def! {
-    pub mod model;
-}
-
-mod_def! {
-    pub mod into_dto;
-}
-
-mod_def! {
     pub mod from_model;
-}
-
-mod_def! {
-    pub mod sql_filter;
+    pub mod into_dto;
 }

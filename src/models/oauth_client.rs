@@ -1,5 +1,4 @@
 use crate::traits::into_dto::IntoDTO;
-use crate::traits::model::Model;
 use crate::traits::FromModel;
 use actix_oauth::dto::create::OAuthCreateClientDTO;
 use actix_oauth::dto::{OAuthClientDTO, OAuthClientDTOCollection};
@@ -7,6 +6,7 @@ use actix_oauth::types::{ClientId, ClientSecret, GrantType, RedirectUri, Scopes}
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use sqlx_utils::traits::Model;
 
 #[derive(
     Default, Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd, FromRow, Serialize, Deserialize,

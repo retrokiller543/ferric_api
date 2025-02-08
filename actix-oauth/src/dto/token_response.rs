@@ -35,6 +35,12 @@ pub enum TokenResponseExample {
     Success(#[content("application/json")] TokenResponse),
 }
 
+impl Default for TokenResponse {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TokenResponse {
     pub fn new() -> Self {
         Self {

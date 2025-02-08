@@ -1,8 +1,8 @@
 use crate::error::ApiError;
 use crate::repositories::users::UsersRepository;
-use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::{web, HttpResponse};
+use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 generate_endpoint! {

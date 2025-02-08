@@ -1,19 +1,7 @@
-/*
-CREATE TABLE oauth_token (
-    id BIGSERIAL PRIMARY KEY,
-    token TEXT NOT NULL UNIQUE, -- can also store a hash here if desired
-    client_id BIGINT NOT NULL REFERENCES oauth_client(id) ON DELETE CASCADE,
-    user_ext_id UUID NOT NULL REFERENCES users(ext_id) ON DELETE CASCADE,
-    token_type token_type NOT NULL,
-    scopes TEXT[] NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-*/
-use crate::traits::model::Model;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use sqlx_utils::traits::Model;
 use std::fmt::{Display, Formatter};
 use utoipa::ToSchema;
 use uuid::Uuid;

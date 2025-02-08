@@ -1,7 +1,4 @@
 use crate::models::user::User;
-use crate::repositories::{repository, PgQuery};
-use crate::traits::model::Model;
-use crate::traits::repository::Repository;
 use crate::ApiResult;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -9,6 +6,9 @@ use argon2::{
 };
 use chrono::NaiveDateTime;
 use sqlx::{query, query_as, PgPool};
+use sqlx_utils::repository;
+use sqlx_utils::traits::{Model, Repository};
+use sqlx_utils::types::Query;
 use tracing::error;
 
 repository! {
@@ -81,7 +81,7 @@ impl Repository<User> for UsersRepository {
     }
 
     #[inline]
-    fn insert_one(model: &User) -> PgQuery<'_> {
+    fn insert_one(model: &User) -> Query<'_> {
         query!(
             "INSERT INTO users (username, password_hash, email)
              VALUES ($1, $2, $3)",
@@ -92,7 +92,7 @@ impl Repository<User> for UsersRepository {
     }
 
     #[inline]
-    fn update_one(model: &User) -> PgQuery<'_> {
+    fn update_one(model: &User) -> Query<'_> {
         query!(
             "UPDATE users
              SET username = $1,
@@ -108,7 +108,7 @@ impl Repository<User> for UsersRepository {
     }
 
     #[inline]
-    fn delete_one_by_id(id: &<User as Model>::Id) -> PgQuery<'_> {
+    fn delete_one_by_id(id: &<User as Model>::Id) -> Query<'_> {
         query!(
             "DELETE FROM users
              WHERE ext_id = $1",
@@ -117,7 +117,7 @@ impl Repository<User> for UsersRepository {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_all(&self) -> ApiResult<Vec<User>> {
+    async fn get_all(&self) -> sqlx_utils::Result<Vec<User>> {
         Ok(query_as!(
             User,
             "SELECT id, ext_id, username, password_hash, email, created_at, updated_at FROM users"
@@ -127,7 +127,10 @@ impl Repository<User> for UsersRepository {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_by_id(&self, id: impl Into<<User as Model>::Id>) -> ApiResult<Option<User>> {
+    async fn get_by_id(
+        &self,
+        id: impl Into<<User as Model>::Id>,
+    ) -> sqlx_utils::Result<Option<User>> {
         let id = id.into();
         Ok(query_as!(
             User,

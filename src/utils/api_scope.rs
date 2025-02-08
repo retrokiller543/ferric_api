@@ -139,7 +139,7 @@ macro_rules! api_scope {
         }
     } => {
         ::paste::paste! {
-            crate::openapi::version_prefix! {
+            $crate::openapi::version_prefix! {
                 $version_ident
             }
 
@@ -161,7 +161,7 @@ macro_rules! api_scope {
                     .service(::utoipa_scalar::Scalar::with_url("/scalar", openapi.clone()))
             }
 
-            crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?
+            $crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?
                 docs: {
                     $(extra_paths: [$($extra_path),*];)?
                     $(tags: [$($tag),*];)?
@@ -217,7 +217,7 @@ macro_rules! api_scope {
             $vis struct [<$ident:camel API>];
         }
 
-        crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?}
+        $crate::utils::api_scope! {$vis $ident = $endpoint;$(guard: $guard_ident;)?$( services: [$($service),*] ; )?$( middleware: [$($middleware: $expr),*] ; )?$( paths: [$($path),*] ; )?}
     };
 
     {
@@ -230,7 +230,7 @@ macro_rules! api_scope {
     } => {
         ::paste::paste! {
             #[inline]
-            $vis async fn [<$ident:snake _service>]() -> crate::ServerResult<impl ::actix_web::dev::HttpServiceFactory> {
+            $vis async fn [<$ident:snake _service>]() -> $crate::ServerResult<impl ::actix_web::dev::HttpServiceFactory> {
                 $(
                     $(let $middleware = $expr;)*
                 )?

@@ -24,6 +24,9 @@ pub enum ApiError {
     #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
     #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
     Postgres(#[from] sqlx::Error),
+    #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
+    #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
+    Sql(#[from] sqlx_utils::Error),
     #[error("Failed to hash password")]
     Argon2(#[from] argon2::password_hash::errors::Error),
     #[error(transparent)]

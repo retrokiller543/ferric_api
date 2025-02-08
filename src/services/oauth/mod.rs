@@ -1,10 +1,10 @@
 use crate::models::oauth_token::{OAuthToken, TokenType};
-use crate::repositories::oauth_token::get_oauth_token_repository;
-use crate::traits::repository::Repository;
+use crate::repositories::oauth_token::OAUTH_TOKEN_REPOSITORY;
 use crate::{ApiResult, ServerResult};
 use actix_oauth::dto::TokenResponse;
 use actix_oauth::handler::{OAuth2Handler, OAuth2HandlerBuilder};
 use chrono::{Local, TimeDelta};
+use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 mod password_handler;
@@ -18,7 +18,7 @@ pub(crate) async fn oauth_handler() -> ServerResult<OAuth2Handler> {
 
 async fn create_token_response(user_ext_id: Uuid) -> ApiResult<TokenResponse> {
     let token = TokenResponse::new();
-    let token_repo = get_oauth_token_repository().await?;
+    let token_repo = *OAUTH_TOKEN_REPOSITORY;
 
     let expires = Local::now()
         .checked_add_signed(TimeDelta::seconds(token.expires_in as i64))

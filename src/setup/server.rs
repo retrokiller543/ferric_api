@@ -3,7 +3,7 @@
 #[macro_export]
 macro_rules! server {
     () => {{
-        $crate::setup::database::get_db_pool().await;
+        ::sqlx_utils::pool::initialize_db_pool($crate::setup::database::db_pool().await?);
 
         ::actix_web::HttpServer::new(move || {
             let cors = $crate::config::cors();
@@ -52,9 +52,9 @@ macro_rules! block_on_fut {
 config! {
     pub state(cfg) {
         let state = block_on_fut!(!match app_state());
-        let token_repo = block_on_fut!(!match get_oauth_token_repository());
-        let client_repo = block_on_fut!(!match get_oauth_clients_repository());
-        let user_repo = block_on_fut!(!match get_users_repository());
+        let token_repo = *OAUTH_TOKEN_REPOSITORY;
+        let client_repo = *OAUTH_CLIENTS_REPOSITORY;
+        let user_repo = *USERS_REPOSITORY;
 
         cfg.app_data(state)
            .app_data(web::Data::new(token_repo))
@@ -83,14 +83,11 @@ config! {
 }
 
 use crate::endpoints::index_scope;
-use crate::repositories::oauth_clients::get_oauth_clients_repository;
-use crate::repositories::oauth_token::get_oauth_token_repository;
-use crate::repositories::users::get_users_repository;
+use crate::repositories::oauth_clients::OAUTH_CLIENTS_REPOSITORY;
+use crate::repositories::oauth_token::OAUTH_TOKEN_REPOSITORY;
+use crate::repositories::users::USERS_REPOSITORY;
 use crate::state::app_state;
 use crate::statics::EXTERNAL_RESOURCES;
-use actix_web::rt::Runtime;
 use actix_web::web;
 use actix_web::web::ServiceConfig;
-use futures::executor::block_on;
-use tokio::{join, try_join};
 use tracing::error;

@@ -1,8 +1,8 @@
-use crate::traits::model::Model;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use sqlx_filter_macro::sql_filter;
+use sqlx_utils::sql_filter;
+use sqlx_utils::traits::Model;
 use uuid::Uuid;
 
 #[derive(
