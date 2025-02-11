@@ -30,6 +30,10 @@ pub enum ApiError {
     #[error("Failed to hash password")]
     Argon2(#[from] argon2::password_hash::errors::Error),
     #[error(transparent)]
+    Llm(#[from] tosic_llm::error::LlmError),
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
+    #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error + Send>),
 }
 

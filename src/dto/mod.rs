@@ -6,9 +6,7 @@
 
 mod_def! {
     pub(crate) mod error;
-}
-
-mod_def! {
+    pub mod llm;
     pub(crate) mod user;
 }
 
