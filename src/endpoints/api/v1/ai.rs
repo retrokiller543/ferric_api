@@ -5,10 +5,11 @@ use actix_helper_utils::generate_endpoint;
 use actix_web::{web, HttpResponse};
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
+use std::sync::LazyLock;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use tosic_llm::traits::LlmClient;
-use tosic_llm::{GeminiClient, GeminiModel};
+use tosic_llm::gemini::{GeminiClient, GeminiModel};
+use tosic_llm::LlmProvider;
 use tracing::error;
 
 api_scope! {
@@ -21,38 +22,54 @@ api_scope! {
     }
 }
 
-#[tracing::instrument]
-async fn stream_handler(req: LlmRequest) -> ApiResult<HttpResponse> {
-    let (tx, rx) = mpsc::channel::<ApiResult<Bytes>>(1024);
-    let stream = ReceiverStream::new(rx);
+static GEMINI_PROVIDER: LazyLock<LlmProvider<GeminiClient>> = LazyLock::new(|| {
+    LlmProvider::new(
+        GeminiClient::new(GeminiModel::Gemini2Flash)
+            .expect("Failed to construct Gemini2 provider object"),
+    )
+});
 
-    tokio::spawn(async move {
-        let client = GeminiClient::new(GeminiModel::Gemini2Flash);
+async fn completion_handler(req: LlmRequest) -> ApiResult<HttpResponse> {
+    let response = GEMINI_PROVIDER
+        .generate(req.contents.into(), req.stream)
+        .await?;
 
-        let mut ai_stream = client.stream_chat_completion(req.contents.into()).await?;
+    if req.stream {
+        let (tx, rx) = mpsc::channel::<ApiResult<Bytes>>(1024);
+        let completion_stream = ReceiverStream::new(rx);
 
-        while let Some(chunk) = ai_stream.next().await {
-            match chunk {
-                Ok(bytes) => {
-                    if tx.send(Ok(bytes.into())).await.is_err() {
-                        error!("failed to send data");
+        assert!(response.is_stream());
+
+        tokio::spawn(async move {
+            let mut stream = response.unwrap_stream();
+
+            while let Some(chunk) = stream.next().await {
+                match chunk {
+                    Ok(bytes) => {
+                        if tx.send(Ok(bytes.into())).await.is_err() {
+                            error!("failed to send data");
+                            break;
+                        }
+                    }
+                    Err(error) => {
+                        error!(error = ?error, "Failed to read data");
                         break;
                     }
                 }
-                Err(error) => {
-                    error!(error = ?error, "Failed to read data");
-                    break;
-                }
             }
-        }
 
-        Ok::<_, ApiError>(())
-    });
+            Ok::<_, ApiError>(())
+        });
 
-    // Return a streaming response
-    Ok(HttpResponse::Ok()
-        .content_type("text/event-stream")
-        .streaming(stream))
+        Ok(HttpResponse::Ok()
+            .content_type("text/event-stream")
+            .streaming(completion_stream))
+    } else {
+        assert!(response.is_static());
+        let response = response.unwrap_static();
+
+        Ok(HttpResponse::Ok().json(response))
+    }
 }
 
 generate_endpoint! {
@@ -71,14 +88,6 @@ generate_endpoint! {
         web::Json(dto): web::Json<LlmRequest>
     }
     {
-        if dto.stream {
-            stream_handler(dto).await
-        } else {
-            let client = GeminiClient::new(GeminiModel::Gemini2Flash);
-
-            let ai_stream = client.generate_content_iter(dto.contents.0).await?;
-
-            Ok(HttpResponse::Ok().json(ai_stream))
-        }
+        completion_handler(dto).await
     }
 }

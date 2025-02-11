@@ -35,7 +35,7 @@ once_cell = "1.20.2"
 sqlx = { version =  "0.8.3", features = ["postgres", "chrono", "macros", "migrate", "runtime-tokio", "uuid"] }
 sqlx-utils = { git = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/sqlx-utils.git", default-features = false, features = ["postgres"] }
 chrono = "0.4.39"
-tosic-llm = { version = "0.1.0", git = "https://github.com/retrokiller543/tosic-llm.git" }
+tosic-llm = { version = "0.1.0", git = "https://github.com/retrokiller543/tosic-llm.git", branch = "master" }
 
 [package]
 name = "ferric_api"
