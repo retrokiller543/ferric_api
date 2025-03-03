@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::{RefOr, Schema};
-use utoipa::{openapi, PartialSchema, ToSchema};
+use utoipa::{PartialSchema, ToSchema, openapi};
 
 wrap_external_type! {
     #[derive(Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]

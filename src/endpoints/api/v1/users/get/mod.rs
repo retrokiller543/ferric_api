@@ -1,13 +1,13 @@
 use crate::dto::{UserDTOCollection, UserDTOVecResponses};
 use crate::error::ApiError;
 use crate::middleware::AuthMiddleware;
-use crate::repositories::oauth_token::get_oauth_token_repository;
-use crate::repositories::users::{get_users_repository, UsersRepository};
+use crate::repositories::oauth_token::OAUTH_TOKEN_REPOSITORY;
+use crate::repositories::users::{USERS_REPOSITORY, UsersRepository};
 use crate::traits::into_dto::IntoDTO;
-use crate::traits::repository::Repository;
 use crate::utils::api_scope;
 use actix_helper_utils::generate_endpoint;
 use actix_web::web;
+use sqlx_utils::traits::Repository;
 
 pub(crate) mod by_id;
 
@@ -16,8 +16,8 @@ api_scope! {
 
     guard: Get;
     middleware: [auth: || async {
-        let token_repo = get_oauth_token_repository().await?;
-        let user_repo = get_users_repository().await?;
+        let token_repo = *OAUTH_TOKEN_REPOSITORY;
+        let user_repo = *USERS_REPOSITORY;
 
         Ok::<_, ApiError>(AuthMiddleware::new(token_repo, user_repo))
     }];

@@ -1,4 +1,4 @@
-use crate::repositories::users::get_users_repository;
+use crate::repositories::users::USERS_REPOSITORY;
 use crate::services::oauth::create_token_response;
 use actix_oauth::error::Oauth2ErrorType;
 use actix_oauth::handler::HandlerReturn;
@@ -6,16 +6,13 @@ use actix_oauth::types::{Password, Username};
 use actix_web::HttpRequest;
 
 #[inline]
-#[actix_oauth::oauth]
 #[tracing::instrument(skip_all, level = "debug")]
 pub(crate) async fn password_handler(
     _: HttpRequest,
     username: Username,
     password: Password,
 ) -> HandlerReturn {
-    let repo = get_users_repository()
-        .await
-        .map_err(|_| Oauth2ErrorType::ServerError)?;
+    let repo = *USERS_REPOSITORY;
 
     let user = repo
         .find_by_username(username)

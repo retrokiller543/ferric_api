@@ -1,53 +1,153 @@
-use super::OAuth2HandlerBuilder;
-use crate::dto::AuthorizationRequest;
-use crate::handler::{AuthorizationFuture, HandlerFuture};
-use crate::types::{
-    AuthorizationCode, ClientId, ClientSecret, Password, RedirectUri, RefreshToken, Username,
+use super::OAuth2Handler;
+use crate::handler::default::{
+    NotImplementedAuthCodeHandler, NotImplementedAuthorizationHandler,
+    NotImplementedClientCredentialsHandler, NotImplementedPasswordHandler,
+    NotImplementedRefreshTokenHandler,
 };
-use actix_web::HttpRequest;
-use std::sync::Arc;
+
+use crate::traits::*;
+
+pub struct OAuth2HandlerBuilder<
+    PH = NotImplementedPasswordHandler,
+    AH = NotImplementedAuthCodeHandler,
+    CH = NotImplementedClientCredentialsHandler,
+    RH = NotImplementedRefreshTokenHandler,
+    AuthH = NotImplementedAuthorizationHandler,
+> where
+    PH: PasswordHandler,
+    AH: AuthCodeHandler,
+    CH: ClientCredentialsHandler,
+    RH: RefreshTokenHandler,
+    AuthH: AuthorizationHandler,
+{
+    password_grant_handler: PH,
+    authorization_code_grant_handler: AH,
+    client_credentials_grant_handler: CH,
+    refresh_token_handler: RH,
+    authorization_handler: AuthH,
+}
 
 impl OAuth2HandlerBuilder {
-    pub fn password_handler(
-        mut self,
-        handler: impl Fn(HttpRequest, Username, Password) -> HandlerFuture + 'static,
-    ) -> Self {
-        self.password_grant_handler = Some(Arc::new(handler));
-        self
+    #[inline(always)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<PH, AH, CH, RH, AuthH> OAuth2HandlerBuilder<PH, AH, CH, RH, AuthH>
+where
+    PH: PasswordHandler,
+    AH: AuthCodeHandler,
+    CH: ClientCredentialsHandler,
+    RH: RefreshTokenHandler,
+    AuthH: AuthorizationHandler,
+{
+    #[inline(always)]
+    pub fn password_handler<NewPH>(
+        self,
+        handler: NewPH,
+    ) -> OAuth2HandlerBuilder<NewPH, AH, CH, RH, AuthH>
+    where
+        NewPH: PasswordHandler,
+    {
+        OAuth2HandlerBuilder {
+            password_grant_handler: handler,
+            authorization_code_grant_handler: self.authorization_code_grant_handler,
+            client_credentials_grant_handler: self.client_credentials_grant_handler,
+            refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: self.authorization_handler,
+        }
     }
 
-    pub fn authorization_code_handler(
-        mut self,
-        handler: impl Fn(HttpRequest, AuthorizationCode, RedirectUri, ClientId, ClientSecret) -> HandlerFuture
-            + 'static,
-    ) -> Self {
-        self.authorization_code_grant_handler = Some(Arc::new(handler));
-        self
+    #[inline(always)]
+    pub fn authorization_code_handler<NewAH>(
+        self,
+        handler: NewAH,
+    ) -> OAuth2HandlerBuilder<PH, NewAH, CH, RH, AuthH>
+    where
+        NewAH: AuthCodeHandler,
+    {
+        OAuth2HandlerBuilder {
+            password_grant_handler: self.password_grant_handler,
+            authorization_code_grant_handler: handler,
+            client_credentials_grant_handler: self.client_credentials_grant_handler,
+            refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: self.authorization_handler,
+        }
     }
 
-    pub fn authorization_handler(
-        mut self,
-        handler: impl Fn(HttpRequest, AuthorizationRequest) -> AuthorizationFuture + 'static,
-    ) -> Self {
-        self.authorization_handler = Some(Arc::new(handler));
-
-        self
+    #[inline(always)]
+    pub fn client_credentials_handler<NewCH>(
+        self,
+        handler: NewCH,
+    ) -> OAuth2HandlerBuilder<PH, AH, NewCH, RH, AuthH>
+    where
+        NewCH: ClientCredentialsHandler,
+    {
+        OAuth2HandlerBuilder {
+            password_grant_handler: self.password_grant_handler,
+            authorization_code_grant_handler: self.authorization_code_grant_handler,
+            client_credentials_grant_handler: handler,
+            refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: self.authorization_handler,
+        }
     }
 
-    pub fn client_credentials_handler(
-        mut self,
-        handler: impl Fn(HttpRequest, ClientId, ClientSecret) -> HandlerFuture + 'static,
-    ) -> Self {
-        self.client_credentials_grant_handler = Some(Arc::new(handler));
-        self
+    #[inline(always)]
+    pub fn refresh_handler<NewRH>(
+        self,
+        handler: NewRH,
+    ) -> OAuth2HandlerBuilder<PH, AH, CH, NewRH, AuthH>
+    where
+        NewRH: RefreshTokenHandler,
+    {
+        OAuth2HandlerBuilder {
+            password_grant_handler: self.password_grant_handler,
+            authorization_code_grant_handler: self.authorization_code_grant_handler,
+            client_credentials_grant_handler: self.client_credentials_grant_handler,
+            refresh_token_handler: handler,
+            authorization_handler: self.authorization_handler,
+        }
     }
 
-    pub fn refresh_handler(
-        mut self,
-        handler: impl Fn(HttpRequest, Option<ClientId>, Option<ClientSecret>, RefreshToken) -> HandlerFuture
-            + 'static,
-    ) -> Self {
-        self.refresh_token_handler = Some(Arc::new(handler));
-        self
+    #[inline(always)]
+    pub fn authorization_handler<NewAuthH>(
+        self,
+        handler: NewAuthH,
+    ) -> OAuth2HandlerBuilder<PH, AH, CH, RH, NewAuthH>
+    where
+        NewAuthH: AuthorizationHandler,
+    {
+        OAuth2HandlerBuilder {
+            password_grant_handler: self.password_grant_handler,
+            authorization_code_grant_handler: self.authorization_code_grant_handler,
+            client_credentials_grant_handler: self.client_credentials_grant_handler,
+            refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: handler,
+        }
+    }
+
+    #[inline(always)]
+    pub fn build(self) -> OAuth2Handler<PH, AH, CH, RH, AuthH> {
+        OAuth2Handler {
+            password_grant_handler: self.password_grant_handler,
+            authorization_code_grant_handler: self.authorization_code_grant_handler,
+            client_credentials_grant_handler: self.client_credentials_grant_handler,
+            refresh_token_handler: self.refresh_token_handler,
+            authorization_handler: self.authorization_handler,
+        }
+    }
+}
+
+impl Default for OAuth2HandlerBuilder {
+    #[inline(always)]
+    fn default() -> Self {
+        Self {
+            password_grant_handler: NotImplementedPasswordHandler,
+            authorization_code_grant_handler: NotImplementedAuthCodeHandler,
+            client_credentials_grant_handler: NotImplementedClientCredentialsHandler,
+            refresh_token_handler: NotImplementedRefreshTokenHandler,
+            authorization_handler: NotImplementedAuthorizationHandler,
+        }
     }
 }

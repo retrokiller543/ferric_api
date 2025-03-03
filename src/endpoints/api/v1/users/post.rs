@@ -3,7 +3,7 @@ use crate::error::ApiError;
 use crate::repositories::users::UsersRepository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::http::StatusCode;
-use actix_web::{web, HttpResponseBuilder};
+use actix_web::{HttpResponseBuilder, web};
 use validator::Validate;
 
 generate_endpoint! {

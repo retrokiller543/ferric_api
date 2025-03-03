@@ -1,32 +1,10 @@
 #![feature(fn_traits)]
 #![feature(associated_type_defaults)]
 #![allow(async_fn_in_trait)]
-use crate::error::{ApiError, ServerError};
-use crate::setup::server;
-use crate::setup::setup;
-use statics::PORT;
 
-pub(crate) mod config;
-pub(crate) mod dto;
-pub(crate) mod endpoints;
-pub(crate) mod env;
-pub(crate) mod error;
-mod extractors;
-pub(crate) mod logging;
-pub(crate) mod middleware;
-pub(crate) mod models;
-pub(crate) mod openapi;
-pub(crate) mod repositories;
-pub(crate) mod services;
-pub(crate) mod setup;
-pub(crate) mod state;
-pub(crate) mod statics;
-pub mod traits;
-pub(crate) mod types;
-pub(crate) mod utils;
-
-pub(crate) type ApiResult<T> = Result<T, ApiError>;
-pub(crate) type ServerResult<T> = Result<T, ServerError>;
+use ferric_api::setup::setup;
+use ferric_api::statics::PORT;
+use ferric_api::{ServerResult, server};
 
 #[actix::main]
 async fn main() -> ServerResult<()> {

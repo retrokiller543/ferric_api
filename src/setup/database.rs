@@ -1,12 +1,12 @@
-use crate::statics::{DATABASE_URL, DB_POOL};
 use crate::ServerResult;
-use sqlx::postgres::PgPoolOptions;
+use crate::statics::DATABASE_URL;
 use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 
 #[inline]
 #[tracing::instrument]
-pub(crate) async fn db_pool() -> ServerResult<PgPool> {
+pub async fn db_pool() -> ServerResult<PgPool> {
     Ok(PgPoolOptions::new()
         .max_connections(21)
         .min_connections(5)
@@ -15,10 +15,4 @@ pub(crate) async fn db_pool() -> ServerResult<PgPool> {
         .acquire_timeout(Duration::from_secs(20))
         .connect(&DATABASE_URL)
         .await?)
-}
-
-#[inline(always)]
-#[tracing::instrument]
-pub(crate) async fn get_db_pool() -> ServerResult<&'static PgPool> {
-    DB_POOL.get_or_try_init(db_pool).await
 }

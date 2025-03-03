@@ -1,8 +1,8 @@
 use crate::dto::Error;
 use crate::endpoints::{__path_health, api::v1::V1API};
 use std::collections::BTreeMap;
-use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::openapi::OpenApi as OpenApiSpec;
+use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
 /// Constructs a new struct that implements [`Modify`] trait for [`utoipa`] documentation.

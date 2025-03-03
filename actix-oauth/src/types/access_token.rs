@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter};
 use tosic_utils::wrap_external_type;
 use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
 use utoipa::openapi::{RefOr, Required, Schema};
-use utoipa::{openapi, IntoParams, PartialSchema};
+use utoipa::{IntoParams, PartialSchema, openapi};
 
 wrap_external_type! {
     #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]

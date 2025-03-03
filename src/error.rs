@@ -1,7 +1,7 @@
 use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::ServiceResponse;
 use actix_web::http::header::{HeaderValue, TryIntoHeaderValue};
-use actix_web::http::{header, StatusCode};
+use actix_web::http::{StatusCode, header};
 use actix_web::middleware::ErrorHandlerResponse;
 use actix_web::{HttpResponse, ResponseError};
 #[cfg(debug_assertions)]
@@ -16,7 +16,7 @@ use crate::dto::Error;
 /// Error that could occur when the API is running and need to be sent back to the client
 #[derive(Error, Debug)]
 #[allow(dead_code)]
-pub(crate) enum ApiError {
+pub enum ApiError {
     #[error("Error: {0}")]
     Basic(String),
     #[error(transparent)]
@@ -24,8 +24,15 @@ pub(crate) enum ApiError {
     #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
     #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
     Postgres(#[from] sqlx::Error),
+    #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
+    #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
+    Sql(#[from] sqlx_utils::Error),
     #[error("Failed to hash password")]
     Argon2(#[from] argon2::password_hash::errors::Error),
+    #[error(transparent)]
+    Llm(#[from] tosic_llm::error::LlmError),
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error + Send>),
 }
@@ -33,7 +40,7 @@ pub(crate) enum ApiError {
 /// Errors that occurs on the server level and could cause the entire server to go down
 #[derive(Error, Debug)]
 #[allow(dead_code)]
-pub(crate) enum ServerError {
+pub enum ServerError {
     #[error("Error: {0}")]
     Basic(String),
     #[error(transparent)]
@@ -84,7 +91,7 @@ impl ResponseError for ApiError {
     }
 }
 
-pub(crate) fn default_error_handler<B: MessageBody + 'static>(
+pub fn default_error_handler<B: MessageBody + 'static>(
     res: ServiceResponse<B>,
 ) -> actix_web::Result<ErrorHandlerResponse<BoxBody>> {
     let (req, res) = res.into_parts();

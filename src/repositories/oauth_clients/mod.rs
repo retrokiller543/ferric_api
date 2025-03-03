@@ -1,15 +1,15 @@
-use crate::models::oauth_client::OAuthClient;
-use crate::repositories::{repository, PgQuery};
-use crate::traits::model::Model;
 use crate::ApiResult;
+use crate::models::oauth_client::OAuthClient;
 use actix_oauth::types::GrantType;
 use sqlx::{query, query_as};
+use sqlx_utils::traits::Model;
+use sqlx_utils::{repository, types::Query};
 
 repository! {
-    pub(crate) OauthClientsRepository<OAuthClient>;
+    pub OauthClientsRepository<OAuthClient>;
 
     #[inline]
-    fn insert_one(client: &OAuthClient) -> PgQuery<'_> {
+    fn insert_one(client: &OAuthClient) -> Query<'_> {
         query!(
             "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
              VALUES ($1, $2, $3, $4, $5)",
@@ -21,7 +21,8 @@ repository! {
         )
     }
 
-    fn update_one(client: &OAuthClient) -> PgQuery<'_> {
+    #[inline]
+    fn update_one(client: &OAuthClient) -> Query<'_> {
         query!(
             "UPDATE oauth_client
              SET client_secret = $1,
@@ -37,7 +38,7 @@ repository! {
         )
     }
 
-    fn delete_one_by_id(id: &<OAuthClient as Model>::Id) -> PgQuery<'_> {
+    fn delete_one_by_id(id: &<OAuthClient as Model>::Id) -> Query<'_> {
         query!(
             "DELETE FROM oauth_client
              WHERE client_id = $1",
@@ -45,7 +46,7 @@ repository! {
         )
     }
 
-    async fn get_all(&self) -> ApiResult<Vec<OAuthClient>> {
+    async fn get_all(&self) -> sqlx_utils::Result<Vec<OAuthClient>> {
         Ok(query_as!(
             OAuthClient,
             "SELECT
@@ -61,7 +62,7 @@ repository! {
         .await?)
     }
 
-    async fn get_by_id(&self, client_id: impl Into<String>) -> ApiResult<Option<OAuthClient>> {
+    async fn get_by_id(&self, client_id: impl Into<String>) -> sqlx_utils::Result<Option<OAuthClient>> {
         let client_id = client_id.into();
 
         Ok(query_as!(

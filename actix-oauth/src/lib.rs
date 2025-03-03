@@ -1,14 +1,16 @@
+#![feature(unboxed_closures)]
+#![feature(async_fn_traits)]
+
 use std::collections::BTreeMap;
 use utoipa::{Modify, OpenApi};
 
 pub mod dto;
 pub mod error;
 pub mod handler;
-mod traits;
+pub mod traits;
 pub mod types;
 mod utils;
 
-pub use actix_oauth_macro::oauth;
 use dto::*;
 use types::*;
 use utoipa::openapi::OpenApi as OpenApiSpec;

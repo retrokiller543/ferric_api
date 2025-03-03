@@ -1,10 +1,10 @@
 use crate::error::ApiError;
 use crate::models::oauth_client::OAuthClient;
 use crate::repositories::oauth_clients::OauthClientsRepository;
-use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
 use actix_oauth::dto::OAuthCreateClientDTO;
 use actix_web::web;
+use sqlx_utils::traits::Repository;
 use validator::Validate;
 
 generate_endpoint! {

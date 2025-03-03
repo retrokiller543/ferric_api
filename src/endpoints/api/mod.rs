@@ -1,7 +1,7 @@
+use crate::ServerResult;
 use crate::openapi::ApiDocs;
 use crate::statics::BASE_URL;
-use crate::ServerResult;
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, web};
 use tracing::warn;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;

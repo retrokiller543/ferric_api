@@ -1,13 +1,14 @@
 use crate::models::oauth_token::TokenType;
 use crate::repositories::oauth_token::{OauthTokenFilter, OauthTokenRepository};
 use crate::repositories::users::UsersRepository;
-use crate::traits::Repository;
 use crate::utils::middleware_macros::define_middleware;
 use actix_web::dev::ServiceRequest;
-use actix_web::http::header::AUTHORIZATION;
 use actix_web::http::StatusCode;
+use actix_web::http::header::AUTHORIZATION;
 use actix_web::{HttpMessage, HttpResponse, ResponseError};
+use sqlx_utils::traits::Repository;
 use thiserror::Error;
+
 #[derive(Debug, Error)]
 pub enum AuthError {
     #[error("Missing authorization header")]
@@ -44,8 +45,8 @@ impl ResponseError for AuthError {
 define_middleware! {
     #[derive(Debug)]
     pub struct AuthMiddleware {
-        token_repo: &'static OauthTokenRepository,
-        user_repo: &'static UsersRepository,
+        token_repo: OauthTokenRepository,
+        user_repo: UsersRepository,
     },
 
     pub struct AuthMiddlewareService;
@@ -62,7 +63,7 @@ define_middleware! {
                 .to_str()
                 .map_err(|_| AuthError::InvalidToken)?;
 
-            let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new([]).token(token)).await?;
+            let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new().token(token)).await?;
             let token_model = token_res.first().cloned();
 
             let token = token_model.ok_or(AuthError::InvalidToken)?;

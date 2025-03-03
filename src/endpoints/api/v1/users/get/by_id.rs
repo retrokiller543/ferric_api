@@ -2,9 +2,9 @@ use crate::dto::UserDTO;
 use crate::error::ApiError;
 use crate::repositories::users::UsersRepository;
 use crate::traits::into_dto::IntoDTO;
-use crate::traits::repository::Repository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::web;
+use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 generate_endpoint! {
