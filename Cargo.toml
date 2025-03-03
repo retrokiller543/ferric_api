@@ -1,8 +1,7 @@
 [workspace]
 members = [
     ".",
-    "actix-oauth",
-    "actix-oauth-macro"]
+    "actix-oauth"]
 
 [workspace.dependencies]
 actix = "0.13.5"
@@ -41,7 +40,7 @@ tosic-llm = { version = "0.1.0", git = "https://github.com/retrokiller543/tosic-
 name = "ferric_api"
 description = "API for the ferric project"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 license-file = "LICENSE"
 repository = "https://reasonably-happy-moose.ngrok-free.app/tosic.killer/ferric-api"
 authors = ["tosic.killer"]

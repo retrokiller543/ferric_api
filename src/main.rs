@@ -4,7 +4,7 @@
 
 use ferric_api::setup::setup;
 use ferric_api::statics::PORT;
-use ferric_api::{server, ServerResult};
+use ferric_api::{ServerResult, server};
 
 #[actix::main]
 async fn main() -> ServerResult<()> {

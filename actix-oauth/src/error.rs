@@ -1,6 +1,6 @@
 use crate::dto::oauth_error::Oauth2Error;
 use actix_web::body::BoxBody;
-use actix_web::http::{header, StatusCode};
+use actix_web::http::{StatusCode, header};
 use actix_web::{HttpResponse, ResponseError};
 use thiserror::Error;
 use tracing::error;

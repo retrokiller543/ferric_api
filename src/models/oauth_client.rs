@@ -1,5 +1,5 @@
-use crate::traits::into_dto::IntoDTO;
 use crate::traits::FromModel;
+use crate::traits::into_dto::IntoDTO;
 use actix_oauth::dto::create::OAuthCreateClientDTO;
 use actix_oauth::dto::{OAuthClientDTO, OAuthClientDTOCollection};
 use actix_oauth::types::{ClientId, ClientSecret, GrantType, RedirectUri, Scopes};

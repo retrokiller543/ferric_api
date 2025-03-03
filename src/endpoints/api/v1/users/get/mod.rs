@@ -2,7 +2,7 @@ use crate::dto::{UserDTOCollection, UserDTOVecResponses};
 use crate::error::ApiError;
 use crate::middleware::AuthMiddleware;
 use crate::repositories::oauth_token::OAUTH_TOKEN_REPOSITORY;
-use crate::repositories::users::{UsersRepository, USERS_REPOSITORY};
+use crate::repositories::users::{USERS_REPOSITORY, UsersRepository};
 use crate::traits::into_dto::IntoDTO;
 use crate::utils::api_scope;
 use actix_helper_utils::generate_endpoint;

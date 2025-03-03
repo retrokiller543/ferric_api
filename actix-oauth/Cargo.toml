@@ -1,7 +1,7 @@
 [package]
 name = "actix-oauth"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 actix = { workspace = true }
@@ -30,7 +30,7 @@ once_cell = { workspace = true }
 oauth2 = { version =  "5.0.0", features = ["timing-resistant-secret-traits"] }
 rand = { version = "0.8.5" }
 pin-project-lite = "0.2.15"
-actix_oauth_macro = { path = "../actix-oauth-macro" }
 sqlx = { workspace = true }
 chrono = { workspace = true }
 paste = "1.0.15"
+derive_more = { version = "2.0.1", features = ["full"] }

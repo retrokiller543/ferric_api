@@ -7,9 +7,9 @@ pub mod server;
 
 use tracing_appender::non_blocking::WorkerGuard;
 
+use crate::ServerResult;
 use crate::env::init_env;
 use crate::logging::init_tracing;
-use crate::ServerResult;
 
 #[inline]
 pub async fn setup() -> ServerResult<WorkerGuard> {

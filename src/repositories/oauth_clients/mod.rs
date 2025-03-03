@@ -1,5 +1,5 @@
-use crate::models::oauth_client::OAuthClient;
 use crate::ApiResult;
+use crate::models::oauth_client::OAuthClient;
 use actix_oauth::types::GrantType;
 use sqlx::{query, query_as};
 use sqlx_utils::traits::Model;

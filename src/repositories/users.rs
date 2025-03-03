@@ -1,11 +1,11 @@
-use crate::models::user::User;
 use crate::ApiResult;
+use crate::models::user::User;
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use chrono::NaiveDateTime;
-use sqlx::{query, query_as, PgPool};
+use sqlx::{PgPool, query, query_as};
 use sqlx_utils::repository;
 use sqlx_utils::traits::{Model, Repository};
 use sqlx_utils::types::Query;

@@ -6,7 +6,7 @@ use actix_oauth::types::{Password, Username};
 use actix_web::HttpRequest;
 
 #[inline]
-#[actix_oauth::oauth]
+//#[actix_oauth::oauth]
 #[tracing::instrument(skip_all, level = "debug")]
 pub(crate) async fn password_handler(
     _: HttpRequest,

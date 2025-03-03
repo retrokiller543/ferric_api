@@ -1,7 +1,7 @@
-use crate::statics::DATABASE_URL;
 use crate::ServerResult;
-use sqlx::postgres::PgPoolOptions;
+use crate::statics::DATABASE_URL;
 use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 
 #[inline]

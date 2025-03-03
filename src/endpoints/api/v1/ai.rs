@@ -1,15 +1,15 @@
 use crate::dto::LlmRequest;
 use crate::error::ApiError;
-use crate::{api_scope, ApiResult};
+use crate::{ApiResult, api_scope};
 use actix_helper_utils::generate_endpoint;
-use actix_web::{web, HttpResponse};
+use actix_web::{HttpResponse, web};
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
 use std::sync::LazyLock;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use tosic_llm::gemini::{GeminiClient, GeminiModel};
 use tosic_llm::LlmProvider;
+use tosic_llm::gemini::{GeminiClient, GeminiModel};
 use tracing::error;
 
 api_scope! {
@@ -46,7 +46,7 @@ async fn completion_handler(req: LlmRequest) -> ApiResult<HttpResponse> {
             while let Some(chunk) = stream.next().await {
                 match chunk {
                     Ok(bytes) => {
-                        if tx.send(Ok(bytes.into())).await.is_err() {
+                        if tx.send(Ok(bytes)).await.is_err() {
                             error!("failed to send data");
                             break;
                         }
