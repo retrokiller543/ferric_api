@@ -28,6 +28,7 @@ pub struct OAuth2HandlerBuilder<
 }
 
 impl OAuth2HandlerBuilder {
+    #[inline(always)]
     pub fn new() -> Self {
         Self::default()
     }
@@ -41,6 +42,7 @@ where
     RH: RefreshTokenHandler,
     AuthH: AuthorizationHandler,
 {
+    #[inline(always)]
     pub fn password_handler<NewPH>(
         self,
         handler: NewPH,
@@ -57,6 +59,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn authorization_code_handler<NewAH>(
         self,
         handler: NewAH,
@@ -73,6 +76,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn client_credentials_handler<NewCH>(
         self,
         handler: NewCH,
@@ -89,6 +93,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn refresh_handler<NewRH>(
         self,
         handler: NewRH,
@@ -105,6 +110,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn authorization_handler<NewAuthH>(
         self,
         handler: NewAuthH,
@@ -121,6 +127,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn build(self) -> OAuth2Handler<PH, AH, CH, RH, AuthH> {
         OAuth2Handler {
             password_grant_handler: self.password_grant_handler,
@@ -133,6 +140,7 @@ where
 }
 
 impl Default for OAuth2HandlerBuilder {
+    #[inline(always)]
     fn default() -> Self {
         Self {
             password_grant_handler: NotImplementedPasswordHandler,
