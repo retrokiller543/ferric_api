@@ -41,13 +41,10 @@ pre-build: check lint fmt
 docs: pre-build
     cargo doc --workspace --no-deps --open
 
-# Generate client library from the OpenAPI spec
+# Generate client library from the OpenAPI spec. After generating you must create an empty workspace array in the client so that it does not conflict with the main workspace.
 [confirm("This might override or delete some files, are you sure you want to do this? Y/n")]
 generate spec_file=DEFAULT_SPEC_FILE:
     openapi-generator generate -g {{OPENAPI_GENERATOR}} --skip-validate-spec --package-name {{OPENAPI_GENERATOR_PROJECT_NAME}} -i {{spec_file}} -o ./client --additional-properties={{OPENAPI_GENERATOR_PROPERTIES}}
-    just check
-    cargo clippy --fix --all-targets --allow-dirty --allow-staged --workspace --all-features
-    cargo fmt --all
 
 # Generate OpenAPI spec validation report
 validate-spec spec_file=DEFAULT_SPEC_FILE:

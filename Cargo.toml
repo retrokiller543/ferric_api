@@ -2,6 +2,7 @@
 members = [
     ".",
     "actix-oauth"]
+exclude = ["client"]
 
 [workspace.dependencies]
 actix = "0.13.5"
