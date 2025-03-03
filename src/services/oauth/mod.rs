@@ -1,9 +1,10 @@
 use crate::models::oauth_token::{OAuthToken, TokenType};
 use crate::repositories::oauth_token::OAUTH_TOKEN_REPOSITORY;
 use crate::{ApiResult, ServerResult};
-use actix_oauth::dto::TokenResponse;
+use actix_oauth::dto::{AuthorizationRequest, TokenResponse};
 use actix_oauth::handler::OAuth2HandlerBuilder;
-use actix_web::dev::HttpServiceFactory;
+use actix_oauth::traits::OAuth2Manager;
+use actix_web::HttpRequest;
 use chrono::{Local, TimeDelta};
 use sqlx_utils::traits::Repository;
 use uuid::Uuid;
@@ -11,7 +12,7 @@ use uuid::Uuid;
 mod password_handler;
 
 #[inline]
-pub(crate) async fn oauth_handler() -> ServerResult<impl HttpServiceFactory> {
+pub(crate) async fn oauth_handler() -> ServerResult<impl OAuth2Manager> {
     Ok(OAuth2HandlerBuilder::new()
         .password_handler(password_handler::password_handler)
         .build())

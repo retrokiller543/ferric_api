@@ -9,7 +9,7 @@ use derive_more::{AsMut, AsRef, Deref, DerefMut};
 #[derive(Debug, Clone, AsRef, AsMut, Deref, DerefMut)]
 pub struct OAuth2ManagerService<T: OAuth2Manager>(T);
 
-pub trait OAuth2Manager: Clone + 'static {
+pub trait OAuth2Manager: HttpServiceFactory + Clone + 'static {
     async fn token_handler(&self, req: HttpRequest, oauth_req: OauthRequest) -> HandlerReturn;
     fn authorization_handler(&self) -> impl AuthorizationHandler;
 }
