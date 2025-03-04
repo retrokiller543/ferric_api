@@ -82,6 +82,9 @@ impl Modify for OpenApiSecurityConfig {
 
 #[derive(OpenApi)]
 #[openapi(
+    servers(
+        (url = "http://localhost:{port}", description = "A local instance of the API", variables(("port" = (default = "8000", enum_values("8000"), description = "The port the API is running on. This port may change based on the PORT env variable when running the server")))),
+    ),
     paths(health),
     nest(
         (path = "/", api = V1API),

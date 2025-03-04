@@ -7,9 +7,11 @@
       <sourceFolder url="file://$MODULE_DIR$/actix-oauth-macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sqlx-filter-macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tosic_llm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/client/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/actix-oauth/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/postgres_data" />
+      <excludeFolder url="file://$MODULE_DIR$/client/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

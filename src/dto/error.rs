@@ -20,16 +20,16 @@ dto! {
     #[response(
         example = json!({"error": "Error: This is a error message", "code": "400 Bad Request"}),
     )]
-    pub(crate) struct Error<'a> {
+    pub struct Error<'a> {
         /// The error message we got.
         #[serde(skip_serializing_if = "str::is_empty")]
-        pub(crate) error: Cow<'a, str>,
+        pub error: Cow<'a, str>,
         /// Status code in a human-readable format.
         #[serde(skip_serializing_if = "str::is_empty")]
-        pub(crate) code: Cow<'a, str>,
+        pub code: Cow<'a, str>,
         /// Stacktrace of the request after the error occurred.
         #[cfg(debug_assertions)]
         #[serde(skip_serializing_if = "str::is_empty")]
-        pub(crate) stack_trace: Cow<'a, str>,
+        pub stack_trace: Cow<'a, str>,
     }
 }

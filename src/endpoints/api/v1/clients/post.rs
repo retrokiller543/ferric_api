@@ -1,10 +1,13 @@
+use crate::dto::Error;
 use crate::error::ApiError;
 use crate::models::oauth_client::OAuthClient;
 use crate::repositories::oauth_clients::OauthClientsRepository;
+use crate::traits::IntoDTO;
 use actix_helper_utils::generate_endpoint;
-use actix_oauth::dto::OAuthCreateClientDTO;
+use actix_oauth::dto::{OAuthClientDTO, OAuthCreateClientDTO};
 use actix_web::web;
 use sqlx_utils::traits::Repository;
+use tracing::error;
 use validator::Validate;
 
 generate_endpoint! {
@@ -13,10 +16,7 @@ generate_endpoint! {
     method: post;
     path: "";
     error: ApiError;
-    params: {
-        repository: web::Data<OauthClientsRepository>,
-        web::Json(dto): web::Json<OAuthCreateClientDTO>
-    };
+    return_type: OAuthClientDTO
     docs: {
         tag: "Client",
         context_path: "/clients",
@@ -26,7 +26,15 @@ generate_endpoint! {
                 (OAuthCreateClientDTO)
             )
         }
+        responses: {
+            (status = 200, response = OAuthClientDTO),
+            (status = 500, response = Error)
+        }
     }
+    params: {
+        repository: web::Data<OauthClientsRepository>,
+        web::Json(dto): web::Json<OAuthCreateClientDTO>
+    };
     {
         match dto.validate() {
             Ok(()) => {},
@@ -35,6 +43,14 @@ generate_endpoint! {
 
         let model = OAuthClient::new(dto);
         repository.insert(&model).await?;
-        Ok(web::Json(repository.get_by_id(model.client_id).await?))
+        let client = repository.get_by_id(model.client_id).await?;
+
+        match client {
+            Some(client) => Ok(client.into_dto()),
+            None => {
+                error!("Unknown issue while creating OAuth client");
+                Err(ApiError::InternalError)
+            }
+        }
     }
 }

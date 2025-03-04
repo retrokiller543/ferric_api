@@ -23,7 +23,7 @@ macro_rules! impl_responder {
         }
 
         ::paste::paste! {
-            #[derive(serde::Serialize, serde::Deserialize)]
+            #[derive(::serde::Serialize, ::serde::Deserialize, ::utoipa::ToSchema, ::utoipa::ToResponse)]
             pub struct [<$ident Collection>]$(<$($lifetime,)? $($generic),*>)?(Vec<$ident$(<$($lifetime,)? $($generic),*>)?>);
 
             impl$(<$($lifetime,)? $($generic),*>)? From<Vec<$ident$(<$($lifetime,)? $($generic),*>)?>> for [<$ident Collection>]$(<$($lifetime,)? $($generic),*>)? {

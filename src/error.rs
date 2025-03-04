@@ -35,6 +35,8 @@ pub enum ApiError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error + Send>),
+    #[error("An unknown error occurred")]
+    InternalError,
 }
 
 /// Errors that occurs on the server level and could cause the entire server to go down

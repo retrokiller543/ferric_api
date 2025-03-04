@@ -17,6 +17,9 @@ generate_endpoint! {
     docs: {
         tag: "Client",
         context_path: "/clients",
+        responses: {
+            (status = 200, response = OAuthClientDTOCollection)
+        }
     }
     params: {
         repository: web::Data<OauthClientsRepository>

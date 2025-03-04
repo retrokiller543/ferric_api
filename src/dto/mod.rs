@@ -5,9 +5,9 @@
 #![allow(unused_imports)]
 
 mod_def! {
-    pub(crate) mod error;
+    pub mod error;
     pub mod llm;
-    pub(crate) mod user;
+    pub mod user;
 }
 
 use crate::mod_def;

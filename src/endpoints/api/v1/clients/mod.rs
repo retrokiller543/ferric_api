@@ -9,6 +9,7 @@ api_scope! {
     paths: [get::get_clients, post::register];
 
     docs: {
-        schemas: [actix_oauth::dto::OAuthCreateClientDTO];
+        schemas: [actix_oauth::dto::OAuthCreateClientDTO, actix_oauth::dto::OAuthClientDTOCollection, actix_oauth::dto::OAuthClientDTO];
+        responses: [actix_oauth::dto::OAuthClientDTOCollection, actix_oauth::dto::OAuthClientDTO];
     }
 }
