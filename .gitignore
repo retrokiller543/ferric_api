@@ -20,7 +20,7 @@ client/
 client/*
 
 openapi.json
-.idea/dataSources
+.idea/dataSources*
 
 # Added by cargo
 
