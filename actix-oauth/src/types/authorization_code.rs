@@ -6,6 +6,7 @@ use utoipa::openapi::{RefOr, Required, Schema};
 use utoipa::{IntoParams, PartialSchema, ToSchema, openapi};
 
 wrap_external_type! {
+    /// Represents an authorization code.
     #[derive(Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
     pub struct AuthorizationCode(oauth2::AuthorizationCode);
 }

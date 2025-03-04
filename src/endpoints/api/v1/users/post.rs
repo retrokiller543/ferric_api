@@ -1,5 +1,6 @@
 use crate::dto::user::create::UserCreateDTO;
 use crate::error::ApiError;
+use crate::prelude::*;
 use crate::repositories::users::UsersRepository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::http::StatusCode;
@@ -7,6 +8,7 @@ use actix_web::{HttpResponseBuilder, web};
 use validator::Validate;
 
 generate_endpoint! {
+    /// Creates a new user.
     fn create_user;
     method: post;
     path: "";
@@ -16,6 +18,11 @@ generate_endpoint! {
         context_path: "/users",
         request_body: {
             schema = UserCreateDTO
+        }
+        responses: {
+            (status = 201, description = "User was created"),
+            (status = 400, description = "Validation of the body failed", body = Error),
+            (status = 500, description = "Internal Server error", body = Error),
         }
     }
     params: {

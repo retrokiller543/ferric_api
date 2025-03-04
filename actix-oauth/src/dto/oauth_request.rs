@@ -8,29 +8,49 @@ use utoipa::openapi::path::{Parameter, ParameterBuilder, ParameterIn};
 use utoipa::openapi::{KnownFormat, ObjectBuilder, Required, SchemaFormat, Type};
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
+/// OAuth request to the token endpoint.
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, ToSchema, ToResponse)]
 #[serde(tag = "grant_type", rename_all = "snake_case")]
 pub enum OauthRequest {
+    /// Password grant request.
     Password {
+        /// Username of the user.
         #[schema(example = "john-doe")]
         username: Username,
+        /// The users' password.
         #[schema(example = "superSecretePassword")]
         password: Password,
     },
+    /// Authorization code grant request.
     AuthorizationCode {
+        /// The authorization code returned by the authorization endpoint.
         code: AuthorizationCode,
+        /// What uri to redirect to when authorization is done
         #[schema(example = "http://localhost/redirect")]
         redirect_uri: RedirectUri,
+        /// The OAuth clients id.
         client_id: ClientId,
+        /// The OAuth clients secret.
         client_secret: ClientSecret,
     },
+    /// Client credentials grant request.
     ClientCredentials {
+        /// The OAuth clients id.
         client_id: ClientId,
+        /// The OAuth clients secret.
         client_secret: ClientSecret,
     },
+    /// Refresh token grant request.
     RefreshToken {
+        /// The OAuth clients id.
+        ///
+        /// In some flows on some servers this might be needed.
         client_id: Option<ClientId>,
+        /// The OAuth clients secret.
+        ///
+        /// In some flows on some servers this might be needed.
         client_secret: Option<ClientSecret>,
+        /// The refresh token to exchange.
         refresh_token: RefreshToken,
     },
 }

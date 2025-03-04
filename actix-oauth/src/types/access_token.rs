@@ -6,6 +6,7 @@ use utoipa::openapi::{RefOr, Required, Schema};
 use utoipa::{IntoParams, PartialSchema, openapi};
 
 wrap_external_type! {
+    /// Represents an access token.
     #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
     pub struct AccessToken(oauth2::AccessToken);
 }

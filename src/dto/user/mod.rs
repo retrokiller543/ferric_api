@@ -16,6 +16,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 dto! {
+    /// Represents a user returned by the server.
     #[derive(
         Default,
         Debug,
@@ -61,6 +62,7 @@ dto! {
     }
 }
 
+/// A list of `UserDTO` objects.
 #[derive(ToResponse)]
 #[response(examples(
         ("Successful" = (value = json!([{

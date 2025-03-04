@@ -1,4 +1,5 @@
 use crate::error::ApiError;
+use crate::prelude::*;
 use crate::repositories::users::UsersRepository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::{HttpResponse, web};
@@ -6,6 +7,9 @@ use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 generate_endpoint! {
+    /// Delete a user given a external ID (UUID)
+    ///
+    /// TODO: Currently there is no authentication, this will be changed in the future
     fn delete_user;
     method: delete;
     path: "/{id}";
@@ -13,6 +17,10 @@ generate_endpoint! {
     docs: {
         tag: "user",
         context_path: "/users",
+        responses: {
+            (status = 200, description = "Deleted the user"),
+            (status = 500, description = "Error deleting user", body = Error)
+        }
     }
     params: {
         repo: web::Data<UsersRepository>,

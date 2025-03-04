@@ -1,3 +1,5 @@
+//! TODO: Most endpoints have no authentication in this module, this needs to be changed
+
 use crate::endpoints::api::v1::users::get::users_get_service;
 use crate::utils::api_scope;
 

@@ -1,5 +1,7 @@
 use crate::dto::Error;
 use crate::endpoints::{__path_health, api::v1::V1API};
+use crate::repositories::DatabaseHealth;
+use crate::services::health::{ProcessStats, ServerHealth};
 use std::collections::BTreeMap;
 use utoipa::openapi::OpenApi as OpenApiSpec;
 use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
@@ -89,7 +91,7 @@ impl Modify for OpenApiSecurityConfig {
     nest(
         (path = "/", api = V1API),
     ),
-    components(schemas(Error), responses(Error)),
+    components(schemas(Error, ServerHealth, DatabaseHealth, ProcessStats), responses(Error, ServerHealth, DatabaseHealth, ProcessStats)),
     tags(),
     modifiers(&NormalizePath, &OpenApiSecurityConfig)
 )]

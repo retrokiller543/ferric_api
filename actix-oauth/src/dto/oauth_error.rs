@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::{IntoResponses, ToResponse, ToSchema};
 
+/// OAuth2 Error object.
 #[derive(
     Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, ToSchema, ToResponse,
 )]

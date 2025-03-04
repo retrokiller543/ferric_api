@@ -13,6 +13,7 @@ pub mod logging;
 pub mod middleware;
 pub mod models;
 pub mod openapi;
+pub mod prelude;
 pub mod repositories;
 pub mod services;
 pub mod setup;

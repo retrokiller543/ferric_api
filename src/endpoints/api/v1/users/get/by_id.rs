@@ -8,6 +8,7 @@ use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 generate_endpoint! {
+    /// Gets users by their external ID (UUID)
     fn get_user_by_id;
     method: get;
     path: "/{id}";
@@ -17,7 +18,7 @@ generate_endpoint! {
         tag: "user",
         context_path: "/users"
         responses: {
-            (status = 200, response = UserDTO)
+            (status = 200, description = "Successfully fetched user", body = UserDTO)
         }
     }
     params: {

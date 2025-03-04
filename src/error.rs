@@ -17,17 +17,17 @@ use crate::dto::Error;
 #[derive(Error, Debug)]
 #[allow(dead_code)]
 pub enum ApiError {
-    #[error("Error: {0}")]
+    #[error("Error: {0}.")]
     Basic(String),
     #[error(transparent)]
     Validation(#[from] ValidationErrors),
-    #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
-    #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
+    #[cfg_attr(debug_assertions, error("Database error occurred: {0}."))]
+    #[cfg_attr(not(debug_assertions), error("Database error occurred."))]
     Postgres(#[from] sqlx::Error),
-    #[cfg_attr(debug_assertions, error("Database error occurred: {0}"))]
-    #[cfg_attr(not(debug_assertions), error("Database error occurred"))]
+    #[cfg_attr(debug_assertions, error("Database error occurred: {0}."))]
+    #[cfg_attr(not(debug_assertions), error("Database error occurred."))]
     Sql(#[from] sqlx_utils::Error),
-    #[error("Failed to hash password")]
+    #[error("Failed to hash password.")]
     Argon2(#[from] argon2::password_hash::errors::Error),
     #[error(transparent)]
     Llm(#[from] tosic_llm::error::LlmError),
@@ -35,8 +35,22 @@ pub enum ApiError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error + Send>),
-    #[error("An unknown error occurred")]
+    #[error("An unknown error occurred.")]
     InternalError,
+    #[cfg_attr(
+        not(debug_assertions),
+        error("There was an issue with a dependency: {message}.")
+    )]
+    #[cfg_attr(
+        debug_assertions,
+        error(
+            "There was an issue with a dependency: {message}. Dependency failed with error: {error:?}."
+        )
+    )]
+    FailedDependency {
+        message: String,
+        error: Option<Box<dyn std::error::Error + Send>>,
+    },
 }
 
 /// Errors that occurs on the server level and could cause the entire server to go down
@@ -61,6 +75,7 @@ impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::Validation(..) => StatusCode::BAD_REQUEST,
+            Self::FailedDependency { .. } => StatusCode::FAILED_DEPENDENCY,
             _ => {
                 error!("An error occurred: {self}");
                 StatusCode::INTERNAL_SERVER_ERROR

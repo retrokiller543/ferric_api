@@ -82,7 +82,6 @@ generate_endpoint! {
     docs: {
         tag: "llm",
         context_path: "/ai",
-
     }
     params: {
         web::Json(dto): web::Json<LlmRequest>

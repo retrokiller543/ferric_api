@@ -25,6 +25,7 @@ api_scope! {
 }
 
 generate_endpoint! {
+    /// Gets all users that are registered.
     fn get_users;
     method: get;
     path: "";
@@ -34,7 +35,7 @@ generate_endpoint! {
         tag: "user",
         context_path: "/users",
         responses: {
-            (status = 200, response = UserDTOVecResponses)
+            (status = 200, description = "Successfully fetched users", body = UserDTOCollection)
         }
     }
     params: {

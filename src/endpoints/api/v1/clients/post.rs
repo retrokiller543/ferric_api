@@ -11,7 +11,11 @@ use tracing::error;
 use validator::Validate;
 
 generate_endpoint! {
-    /// Register a new client
+    /// Register a new oauth2 client.
+    ///
+    /// # Returns
+    ///
+    /// * `OAuthClientDTO` - The created client.
     fn register;
     method: post;
     path: "";
@@ -27,8 +31,8 @@ generate_endpoint! {
             )
         }
         responses: {
-            (status = 200, response = OAuthClientDTO),
-            (status = 500, response = Error)
+            (status = 200, description = "Successfully created a new OAuth client", body = OAuthClientDTO),
+            (status = 500, description = "Internal Server Error", body = Error)
         }
     }
     params: {

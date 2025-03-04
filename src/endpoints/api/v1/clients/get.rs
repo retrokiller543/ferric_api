@@ -8,7 +8,9 @@ use actix_web::web;
 use sqlx_utils::traits::Repository;
 
 generate_endpoint! {
-    /// Gets all registered OAuth clients
+    /// Gets all registered OAuth clients.
+    ///
+    /// TODO: Add authentication to make sure we can only fetch clients we have access to.
     fn get_clients;
     method: get;
     path: "";
@@ -18,7 +20,7 @@ generate_endpoint! {
         tag: "Client",
         context_path: "/clients",
         responses: {
-            (status = 200, response = OAuthClientDTOCollection)
+            (status = 200, description = "Successfully fetched all OAuth clients", body = OAuthClientDTOCollection)
         }
     }
     params: {
