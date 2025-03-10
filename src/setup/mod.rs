@@ -5,14 +5,12 @@ pub mod app;
 pub mod database;
 pub mod server;
 
-use tracing_appender::non_blocking::WorkerGuard;
-
 use crate::ServerResult;
 use crate::env::init_env;
-use crate::logging::init_tracing;
+use crate::logging::{TracingGuard, init_tracing};
 
 #[inline]
-pub async fn setup() -> ServerResult<WorkerGuard> {
+pub async fn setup() -> ServerResult<TracingGuard> {
     init_env()?;
 
     init_tracing()

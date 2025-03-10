@@ -1,27 +1,51 @@
-use crate::ApiResult;
-use crate::models::oauth_token::OAuthToken;
-use sqlx::{QueryBuilder, query, query_as};
-use sqlx_utils::repository;
-use sqlx_utils::sql_filter;
-use sqlx_utils::traits::{Repository, SqlFilter};
+use crate::models::oauth_token::{OAuthToken, TokenType};
+use crate::prelude::{RepositoryRls, UserContext};
+use crate::{ApiResult, repository_method};
+use sqlx_utils::filter::*;
+use sqlx_utils::prelude::*;
+use tracing::{Span, error};
 use uuid::Uuid;
 
 sql_filter! {
     #[derive(Default, Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
-    pub struct OauthTokenFilter {
-        SELECT * FROM oauth_token
+    pub struct OauthTokenFilter<OauthTokenRepository> {
+        SELECT
+            id,
+            token,
+            client_id,
+            user_ext_id,
+            token_type,
+            scopes,
+            expires_at,
+            created_at
+        FROM
+            oauth_token
         WHERE
             ?token = String
             AND ?user_ext_id = Uuid
-            AND ?token_type as token_types IN Vec<String>
+            AND ?token_type as token_types IN Vec<TokenType>
             AND expires_at > "CURRENT_TIMESTAMP"
     }
 }
 
 repository! {
-    pub OauthTokenRepository<OAuthToken>;
+    pub OauthTokenRepository;
+}
 
-    insert_one(model) {
+impl Repository<OAuthToken> for OauthTokenRepository {
+    fn pool(&self) -> &Pool {
+        self.pool
+    }
+
+    fn repository_span() -> Span {
+        Span::current()
+    }
+}
+
+repository_insert! {
+    OauthTokenRepository<OAuthToken>;
+
+    insert_query(model) {
         query!(
             "INSERT INTO oauth_token (token, client_id, user_ext_id, token_type, scopes, expires_at)
              VALUES ($1, $2, $3, $4, $5, $6)",
@@ -32,16 +56,38 @@ repository! {
             model.scopes as _,
             model.expires_at,
         )
-    };
+    }
+}
 
-    #[tracing::instrument(skip_all, level = "debug")]
-    async fn get_by_id(&self, id: impl Into<i64>) -> sqlx_utils::Result<Option<OAuthToken>> {
-        let id = id.into();
+repository_update! {
+    OauthTokenRepository<OAuthToken>;
 
-        Ok(
-            query_as!(
-                OAuthToken,
-                "SELECT
+    update_query(model) {
+        error!(model = ?model, "OauthTokenRepository is not supposed to update any tokens!");
+
+        query("SELECT NULL as null")
+    }
+}
+
+impl SelectRepository<OAuthToken> for OauthTokenRepository {
+    fn get_all_query(&self) -> QueryAs<OAuthToken> {
+        query_as(
+            "SELECT
+                    id,
+                    token,
+                    client_id,
+                    user_ext_id,
+                    token_type as \"token_type: _\",
+                    scopes,
+                    expires_at,
+                    created_at
+                 FROM oauth_token WHERE expires_at > CURRENT_TIMESTAMP",
+        )
+    }
+
+    fn get_by_id_query(&self, id: impl Into<i64>) -> QueryAs<OAuthToken> {
+        query_as(
+            "SELECT
                     id,
                     token,
                     client_id,
@@ -51,53 +97,50 @@ repository! {
                     expires_at,
                     created_at
                  FROM oauth_token WHERE id = $1 AND expires_at > CURRENT_TIMESTAMP",
-                id
-            )
-            .fetch_optional(self.pool)
-            .await?
         )
-    }
-
-    #[tracing::instrument(skip_all, level = "debug")]
-    async fn get_by_any_filter(&self, filter: impl SqlFilter<'_>) -> sqlx_utils::Result<Vec<OAuthToken>> {
-        let mut query = QueryBuilder::new("SELECT * FROM oauth_token WHERE ");
-
-        filter.apply_filter(&mut query);
-
-        Ok(query.build_query_as().fetch_all(self.pool).await?)
+        .bind(id.into())
     }
 }
 
 impl OauthTokenRepository {
-    #[tracing::instrument(skip_all)]
-    pub(crate) async fn get_by_token(
-        &self,
-        token: impl Into<String>,
-    ) -> ApiResult<Option<OAuthToken>> {
-        let token = token.into();
+    repository_method! {
+        pub(crate) async fn get_by_token(
+            &self,
+            tx,
+            token: impl Into<String> + Send,
+        ) -> ApiResult<OAuthToken> {
+            let token = token.into();
 
-        Ok(query_as!(
-            OAuthToken,
-            "SELECT
-                id,
-                token,
-                client_id,
-                user_ext_id,
-                token_type as \"token_type: _\",
-                scopes,
-                expires_at,
-                created_at
-             FROM oauth_token WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP",
-            token
-        )
-        .fetch_optional(self.pool)
-        .await?)
+            let filter = equals("token", Some(token)).and(greater_than_raw("expires_at", Raw("CURRENT_TIMESTAMP")));
+
+            let mut builder = Self::prepare_filter_query(filter);
+
+            builder.build_query_as().fetch_one(tx).await.map_err(Into::into)
+        }
     }
 
-    pub(crate) async fn get_by_filter(
+    fn save_query<'a>(&self, model: &'a OAuthToken) -> Query<'a> {
+        if model.get_id().is_none() {
+            Self::insert_query(model)
+        } else {
+            Self::update_query(model)
+        }
+    }
+
+    pub async fn save_with_context(
         &self,
-        filter: OauthTokenFilter,
-    ) -> ApiResult<Vec<OAuthToken>> {
-        self.get_by_any_filter(filter).await.map_err(Into::into)
+        model: &OAuthToken,
+        context: &UserContext,
+    ) -> ApiResult<()> {
+        self.with_context(context, move |mut tx| async move {
+            let connection = &mut *tx;
+
+            let result = self.save_query(model).execute(connection).await;
+
+            (tx, result)
+        })
+        .await?;
+
+        Ok(())
     }
 }

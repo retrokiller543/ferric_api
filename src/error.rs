@@ -11,7 +11,7 @@ use tracing::error;
 use tracing_core::dispatcher::SetGlobalDefaultError;
 use validator::ValidationErrors;
 
-use crate::dto::Error;
+use crate::dto::ErrorDTO;
 
 /// Error that could occur when the API is running and need to be sent back to the client
 #[derive(Error, Debug)]
@@ -68,6 +68,8 @@ pub enum ServerError {
     #[error(transparent)]
     Postgres(#[from] sqlx::Error),
     #[error(transparent)]
+    DotEnvy(#[from] dotenvy::Error),
+    #[error(transparent)]
     Generic(#[from] Box<dyn std::error::Error + Send>),
 }
 
@@ -94,7 +96,7 @@ impl ResponseError for ApiError {
         let error = {
             #[cfg(debug_assertions)]
             let backtrace = backtrace::Backtrace::capture().to_string();
-            Error {
+            ErrorDTO {
                 code: code.into(),
                 error: msg.into(),
                 #[cfg(debug_assertions)]
@@ -141,7 +143,7 @@ pub fn default_error_handler<B: MessageBody + 'static>(
     let error = {
         #[cfg(debug_assertions)]
         let backtrace = backtrace::Backtrace::capture().to_string();
-        Error {
+        ErrorDTO {
             code: status.to_string().into(),
             error: error_message.into(),
             #[cfg(debug_assertions)]

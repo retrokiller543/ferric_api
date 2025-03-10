@@ -1,15 +1,26 @@
-use crate::ApiResult;
 use crate::models::oauth_client::OAuthClient;
+use crate::prelude::*;
 use actix_oauth::types::GrantType;
-use sqlx::{query, query_as};
-use sqlx_utils::traits::Model;
-use sqlx_utils::{repository, types::Query};
+use tracing::Span;
 
 repository! {
-    pub OauthClientsRepository<OAuthClient>;
+    pub OauthClientsRepository;
+}
 
-    #[inline]
-    fn insert_one(client: &OAuthClient) -> Query<'_> {
+impl Repository<OAuthClient> for OauthClientsRepository {
+    fn pool(&self) -> &Pool {
+        self.pool
+    }
+
+    fn repository_span() -> Span {
+        Span::current()
+    }
+}
+
+repository_insert! {
+    OauthClientsRepository<OAuthClient>;
+
+    insert_query(client) {
         query!(
             "INSERT INTO oauth_client (client_id, client_secret, redirect_uri, grant_types, scopes)
              VALUES ($1, $2, $3, $4, $5)",
@@ -20,9 +31,12 @@ repository! {
             &client.scopes as _
         )
     }
+}
 
-    #[inline]
-    fn update_one(client: &OAuthClient) -> Query<'_> {
+repository_update! {
+    OauthClientsRepository<OAuthClient>;
+
+    update_query(client) {
         query!(
             "UPDATE oauth_client
              SET client_secret = $1,
@@ -37,8 +51,12 @@ repository! {
             client.client_id
         )
     }
+}
 
-    fn delete_one_by_id(id: &<OAuthClient as Model>::Id) -> Query<'_> {
+repository_delete! {
+    OauthClientsRepository<OAuthClient>;
+
+    delete_by_id_query(id) {
         query!(
             "DELETE FROM oauth_client
              WHERE client_id = $1",
@@ -46,40 +64,44 @@ repository! {
         )
     }
 
-    async fn get_all(&self) -> sqlx_utils::Result<Vec<OAuthClient>> {
-        Ok(query_as!(
-            OAuthClient,
+    delete_by_filter_query(filter) {
+        let mut builder = QueryBuilder::new("DELETE FROM oauth_client WHERE ");
+
+        filter.apply_filter(&mut builder);
+
+        builder
+    }
+}
+
+impl SelectRepository<OAuthClient> for OauthClientsRepository {
+    fn get_all_query(&self) -> QueryAs<OAuthClient> {
+        query_as(
             "SELECT
                 client_id,
                 client_secret,
                 redirect_uri,
-                grant_types as \"grant_types: Vec<GrantType>\",
+                grant_types,
                 scopes,
                 created_at
-             FROM oauth_client"
+             FROM oauth_client",
         )
-        .fetch_all(self.pool)
-        .await?)
     }
 
-    async fn get_by_id(&self, client_id: impl Into<String>) -> sqlx_utils::Result<Option<OAuthClient>> {
-        let client_id = client_id.into();
+    fn get_by_id_query(&self, id: impl Into<String>) -> QueryAs<OAuthClient> {
+        let id = id.into();
 
-        Ok(query_as!(
-            OAuthClient,
+        query_as(
             "SELECT
                 client_id,
                 client_secret,
                 redirect_uri,
-                grant_types as \"grant_types: Vec<GrantType>\",
+                grant_types,
                 scopes,
                 created_at
              FROM oauth_client
              WHERE client_id = $1",
-            client_id
         )
-        .fetch_optional(self.pool)
-        .await?)
+        .bind(id)
     }
 }
 

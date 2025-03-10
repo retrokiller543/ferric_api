@@ -21,8 +21,8 @@ generate_endpoint! {
         }
         responses: {
             (status = 201, description = "User was created"),
-            (status = 400, description = "Validation of the body failed", body = Error),
-            (status = 500, description = "Internal Server error", body = Error),
+            (status = 400, description = "Validation of the body failed", body = ErrorDTO),
+            (status = 500, description = "Internal Server error", body = ErrorDTO),
         }
     }
     params: {

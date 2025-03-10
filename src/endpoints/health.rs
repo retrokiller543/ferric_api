@@ -9,7 +9,7 @@ generate_endpoint! {
     /// Health Endpoint
     ///
     /// Basic health endpoint to see if server up and running and working as expected.
-    // Add more to the inner service to improve the check.
+    #[tracing::instrument(skip_all, err)]
     fn health;
     method: get;
     path: "/health";
@@ -20,8 +20,8 @@ generate_endpoint! {
         context_path: "/",
         responses: {
             (status = 200, description = "Server is up and running and no direct issues found", body = ServerHealth),
-            (status = 424, description = "Failed to check health of a dependency", body = Error),
-            (status = 500, description = "Internal Server Error", body = Error),
+            (status = 424, description = "Failed to check health of a dependency", body = ErrorDTO),
+            (status = 500, description = "Internal Server Error", body = ErrorDTO),
         }
     }
     params: {

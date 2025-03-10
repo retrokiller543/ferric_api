@@ -1,9 +1,11 @@
 #![feature(associated_type_defaults)]
+#![feature(tuple_trait)]
 #![allow(async_fn_in_trait)]
 
 use crate::error::{ApiError, ServerError};
 
 pub mod config;
+mod constants;
 pub mod dto;
 pub mod endpoints;
 pub mod env;

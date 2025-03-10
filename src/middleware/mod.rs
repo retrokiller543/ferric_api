@@ -1,13 +1,18 @@
+pub mod rls_context;
+
 use crate::models::oauth_token::TokenType;
-use crate::repositories::oauth_token::{OauthTokenFilter, OauthTokenRepository};
+use crate::prelude::*;
+use crate::repositories::oauth_token::OauthTokenRepository;
 use crate::repositories::users::UsersRepository;
+use crate::utils::header::extract_bearer_token;
 use crate::utils::middleware_macros::define_middleware;
+use actix_oauth::types::AccessToken;
 use actix_web::dev::ServiceRequest;
 use actix_web::http::StatusCode;
 use actix_web::http::header::AUTHORIZATION;
 use actix_web::{HttpMessage, HttpResponse, ResponseError};
-use sqlx_utils::traits::Repository;
 use thiserror::Error;
+use tracing::warn;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -44,7 +49,7 @@ impl ResponseError for AuthError {
 
 define_middleware! {
     #[derive(Debug)]
-    pub struct AuthMiddleware {
+    pub struct AuthMiddleware = "AuthMiddleware" {
         token_repo: OauthTokenRepository,
         user_repo: UsersRepository,
     },
@@ -59,26 +64,29 @@ define_middleware! {
                 .get(AUTHORIZATION)
                 .ok_or(AuthError::MissingAuth)?;
 
-            let token = auth_header
+            let mut token = auth_header
                 .to_str()
-                .map_err(|_| AuthError::InvalidToken)?;
+                .map_err(|error| {
+                    warn!(?error, "Failed to convert auth header to string, header might contain non ASCII characters");
+                    AuthError::InvalidToken
+                })?;
+            token = extract_bearer_token(token).ok_or(AuthError::InvalidToken)?;
 
-            let token_res = service.token_repo.get_by_filter(OauthTokenFilter::new().token(token)).await?;
-            let token_model = token_res.first().cloned();
-
-            let token = token_model.ok_or(AuthError::InvalidToken)?;
+            let context = UserContext::System;
+            let token = service.token_repo.get_by_token_with_context(token, &context).await.map_err(|_| AuthError::InvalidToken)?;
 
             if token.token_type != TokenType::Access {
                 return Err(AuthError::InvalidTokenType.into())
             }
 
             let user = service.user_repo
-                .get_by_id(token.user_ext_id)
+                .get_by_ext_id_with_context(token.user_ext_id, &context)
                 .await
                 .map_err(|_| AuthError::InternalError)?
                 .ok_or(AuthError::UserNotFound)?;
 
             let mut ext = req.extensions_mut();
+            ext.insert(AccessToken::new(token.token.clone()));
             ext.insert(token);
             ext.insert(user);
         }

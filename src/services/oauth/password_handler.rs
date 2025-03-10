@@ -1,3 +1,4 @@
+use crate::prelude::UserContext;
 use crate::repositories::users::USERS_REPOSITORY;
 use crate::services::oauth::create_token_response;
 use actix_oauth::error::Oauth2ErrorType;
@@ -15,7 +16,7 @@ pub(crate) async fn password_handler(
     let repo = *USERS_REPOSITORY;
 
     let user = repo
-        .find_by_username(username)
+        .find_by_email2_with_context(username, &UserContext::System)
         .await
         .map_err(|_| Oauth2ErrorType::InvalidGrant)?;
 

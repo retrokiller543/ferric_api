@@ -20,7 +20,7 @@ dto! {
     #[response(
         example = json!({"error": "Error: This is a error message", "code": "400 Bad Request"}),
     )]
-    pub struct Error<'a> {
+    pub struct ErrorDTO<'a> {
         /// The error message we got.
         #[serde(skip_serializing_if = "str::is_empty")]
         pub error: Cow<'a, str>,

@@ -3,7 +3,6 @@ use crate::prelude::*;
 use crate::repositories::users::UsersRepository;
 use actix_helper_utils::generate_endpoint;
 use actix_web::{HttpResponse, web};
-use sqlx_utils::traits::Repository;
 use uuid::Uuid;
 
 generate_endpoint! {
@@ -19,7 +18,7 @@ generate_endpoint! {
         context_path: "/users",
         responses: {
             (status = 200, description = "Deleted the user"),
-            (status = 500, description = "Error deleting user", body = Error)
+            (status = 500, description = "Error deleting user", body = ErrorDTO)
         }
     }
     params: {

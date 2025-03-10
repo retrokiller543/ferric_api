@@ -4,11 +4,8 @@ mod_def! {
 
 use crate::dto;
 use crate::mod_def;
-use crate::models::oauth_client::OAuthClient;
 use crate::models::user::User;
 use crate::traits::{FromModel, IntoDTO};
-use actix_oauth::dto::{OAuthClientDTO, OAuthClientDTOCollection};
-use actix_oauth::impl_responder;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoResponses, ToResponse, ToSchema};

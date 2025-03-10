@@ -2,10 +2,12 @@
 ///
 /// # Example
 /// ```rust
+/// # use ferric_api::define_middleware;
+/// # use actix_web::dev::ServiceRequest;
 /// define_middleware! {
 ///     #[derive(Debug)]
 ///     pub struct MyMiddleware {
-///         config: Config,
+///         config: String,
 ///     },
 ///     
 ///     pub struct MyMiddlewareService;
@@ -20,7 +22,7 @@
 macro_rules! define_middleware {
     (
         $(#[$meta:meta])*
-        $vis:vis struct $middleware_name:ident $(<$type_lifetime:lifetime>)? {
+        $vis:vis struct $middleware_name:ident $(<$type_lifetime:lifetime>)? $(= $str_name:literal)? {
             $(
                 $(#[$field_meta:meta])*
                 $middleware_field:ident: $middleware_type:ty $(=> $field_method:ident)?
@@ -101,6 +103,7 @@ macro_rules! define_middleware {
                 self.service.poll_ready(cx)
             }
 
+            #[::tracing::instrument(skip_all, level = "debug" $(, name = $str_name)?)]
             #[inline]
             fn call(&self, req: actix_web::dev::ServiceRequest) -> Self::Future {
                 let service = self.clone();

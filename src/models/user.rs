@@ -1,8 +1,12 @@
+use crate::extractor;
+use crate::middleware::AuthError;
+use actix_web::HttpMessage;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use sqlx_utils::sql_filter;
 use sqlx_utils::traits::Model;
+use std::future::{Ready, ready};
 use uuid::Uuid;
 
 #[derive(
@@ -39,5 +43,17 @@ sql_filter! {
             AND ?created_at as created_after > NaiveDateTime
             AND ?updated_at as updated_before < NaiveDateTime
             AND ?updated_at as updated_after > NaiveDateTime
+    }
+}
+
+extractor! {
+    User => <Error = AuthError, Future =  Ready<Result<Self, Self::Error>>>(req, _) {
+        let user = req.extensions().get::<Self>().cloned();
+
+        if let Some(user) = user {
+            ready(Ok(user))
+        } else {
+            ready(Err(AuthError::UserNotFound))
+        }
     }
 }

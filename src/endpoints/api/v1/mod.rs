@@ -16,10 +16,11 @@ api_scope! {
 
     version: V1;
     services: [clients_service, oauth_handler, users_service, ai_service];
+    middleware: [];
 
     docs: {
-        schemas: [Error];
-        responses: [Error];
+        schemas: [ErrorDTO];
+        responses: [ErrorDTO];
         nested: [
             ("/", clients::ClientsAPI),
             ("/", users::UsersAPI),

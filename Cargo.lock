@@ -68,7 +68,7 @@ dependencies = [
  "actix-helper-utils-macros",
  "actix-web",
  "utoipa",
- "validator",
+ "validator 0.19.0",
 ]
 
 [[package]]
@@ -165,7 +165,7 @@ dependencies = [
  "utoipa-redoc",
  "utoipa-scalar",
  "utoipa-swagger-ui",
- "validator",
+ "validator 0.20.0",
 ]
 
 [[package]]
@@ -923,6 +923,7 @@ dependencies = [
  "async-trait",
  "bigdecimal",
  "bytes",
+ "cfg-if",
  "chrono",
  "constcat",
  "dotenvy",
@@ -953,7 +954,7 @@ dependencies = [
  "utoipa-scalar",
  "utoipa-swagger-ui",
  "uuid",
- "validator",
+ "validator 0.20.0",
 ]
 
 [[package]]
@@ -2441,18 +2442,18 @@ checksum = "56e6fa9c48d24d85fb3de5ad847117517440f6beceb7798af16b4a87d616b8d0"
 
 [[package]]
 name = "serde"
-version = "1.0.218"
+version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8dfc9d19bdbf6d17e22319da49161d5d0108e4188e8b680aef6299eed22df60"
+checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.218"
+version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f09503e191f4e797cb8aac08e9a4a4695c5edf6a2e70e376d961ddd5c969f82b"
+checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2803,24 +2804,29 @@ dependencies = [
 
 [[package]]
 name = "sqlx-utils"
-version = "1.0.0-2"
-source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/sqlx-utils.git#c7d7281510d6a09b12089be2b5843182bd490a20"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cb4f9fc3a149621c93e6f4912c008b75369e34dc555c3fce44073baba741c89"
 dependencies = [
+ "async-trait",
+ "cfg-if",
  "futures",
+ "parking_lot",
  "paste",
+ "rustc_version",
  "sqlx",
  "sqlx-utils-macro",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
 ]
 
 [[package]]
 name = "sqlx-utils-macro"
-version = "1.0.0-2"
-source = "git+https://reasonably-happy-moose.ngrok-free.app/tosic.killer/sqlx-utils.git#c7d7281510d6a09b12089be2b5843182bd490a20"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2f68e2d3ac62f096cb9f9963a6791d7660f729bb60c3c784a7f987d34aa67cb"
 dependencies = [
- "proc-macro-error",
+ "proc-macro-error2",
  "proc-macro2",
  "quote",
  "syn 2.0.99",
@@ -3046,9 +3052,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.43.0"
+version = "1.44.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d61fa4ffa3de412bfea335c6ecff681de2b609ba3c77ef3e00e521813a9ed9e"
+checksum = "9975ea0f48b5aa3972bf2d888c238182458437cc2a19374b81b25cdf1023fb3a"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3137,7 +3143,7 @@ dependencies = [
  "tracing",
  "url",
  "utoipa",
- "validator",
+ "validator 0.19.0",
 ]
 
 [[package]]
@@ -3478,7 +3484,23 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "url",
- "validator_derive",
+ "validator_derive 0.19.0",
+]
+
+[[package]]
+name = "validator"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43fb22e1a008ece370ce08a3e9e4447a910e92621bb49b85d6e48a45397e7cfa"
+dependencies = [
+ "idna",
+ "once_cell",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "url",
+ "validator_derive 0.20.0",
 ]
 
 [[package]]
@@ -3486,6 +3508,20 @@ name = "validator_derive"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bac855a2ce6f843beb229757e6e570a42e837bcb15e5f449dd48d5747d41bf77"
+dependencies = [
+ "darling",
+ "once_cell",
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.99",
+]
+
+[[package]]
+name = "validator_derive"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7df16e474ef958526d1205f6dda359fdfab79d9aa6d54bafcb92dcd07673dca"
 dependencies = [
  "darling",
  "once_cell",

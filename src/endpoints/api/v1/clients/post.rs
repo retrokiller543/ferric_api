@@ -1,12 +1,12 @@
-use crate::dto::Error;
+use crate::dto::ErrorDTO;
 use crate::error::ApiError;
 use crate::models::oauth_client::OAuthClient;
+use crate::prelude::*;
 use crate::repositories::oauth_clients::OauthClientsRepository;
 use crate::traits::IntoDTO;
 use actix_helper_utils::generate_endpoint;
 use actix_oauth::dto::{OAuthClientDTO, OAuthCreateClientDTO};
 use actix_web::web;
-use sqlx_utils::traits::Repository;
 use tracing::error;
 use validator::Validate;
 
@@ -32,7 +32,7 @@ generate_endpoint! {
         }
         responses: {
             (status = 200, description = "Successfully created a new OAuth client", body = OAuthClientDTO),
-            (status = 500, description = "Internal Server Error", body = Error)
+            (status = 500, description = "Internal Server Error", body = ErrorDTO)
         }
     }
     params: {
@@ -46,7 +46,7 @@ generate_endpoint! {
         }
 
         let model = OAuthClient::new(dto);
-        repository.insert(&model).await?;
+        repository.insert_ref(&model).await?;
         let client = repository.get_by_id(model.client_id).await?;
 
         match client {

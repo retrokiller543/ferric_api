@@ -17,7 +17,6 @@ mod not_found;
 mod test;
 
 use crate::ServerResult;
-pub(crate) use health::*;
 
 #[inline]
 pub fn index_scope() -> ServerResult<impl actix_web::dev::HttpServiceFactory> {

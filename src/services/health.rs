@@ -2,7 +2,6 @@ use crate::error::ApiError;
 use crate::repositories::{DatabaseHealth, check_db_health};
 use crate::state::AppState;
 use crate::{ApiResult, dto};
-use actix_web::{HttpResponse, Responder};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::process;

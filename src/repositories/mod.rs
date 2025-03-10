@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use sqlx_utils::pool::get_db_pool;
 use utoipa::{ToResponse, ToSchema};
@@ -18,8 +17,12 @@ pub struct DatabaseHealth {
         example = "PostgreSQL 17.2 (Debian 17.2-1.pgdg120+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit"
     )]
     pub version: String,
-    /// Current active connections.
+    /// Total number of connections.
     pub connection_count: i64,
+    /// Current number of active connections.
+    pub active_connections: u32,
+    /// Number of idle connections.
+    pub idle_connections: usize,
     /// The max connections of the database.
     pub max_connections: i32,
     /// Update of the database in the format of BigDecimal String
@@ -96,10 +99,15 @@ pub(crate) async fn check_db_health() -> crate::ApiResult<DatabaseHealth> {
 
     let uptime = db_stats.uptime_seconds.to_string();
 
+    let active_connections = pool.size();
+    let idle_connections = pool.num_idle();
+
     Ok(DatabaseHealth {
         connected: true,
         version,
         connection_count: conn_stats.current_connections,
+        active_connections,
+        idle_connections,
         max_connections: conn_stats.max_connections,
         uptime,
         size_mb,

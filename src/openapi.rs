@@ -1,10 +1,10 @@
-use crate::dto::Error;
-use crate::endpoints::{__path_health, api::v1::V1API};
+use crate::dto::ErrorDTO;
+use crate::endpoints::{api::v1::V1API, health::__path_health};
 use crate::repositories::DatabaseHealth;
 use crate::services::health::{ProcessStats, ServerHealth};
 use std::collections::BTreeMap;
 use utoipa::openapi::OpenApi as OpenApiSpec;
-use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
+use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
 /// Constructs a new struct that implements [`Modify`] trait for [`utoipa`] documentation.
@@ -66,16 +66,13 @@ impl Modify for OpenApiSecurityConfig {
                 .description(Some("Bearer auth"))
                 .build(),
         );
-        let cookie = SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("id")));
 
         if let Some(components) = &mut openapi.components {
             components.add_security_scheme("bearer_token", bearer);
-            components.add_security_scheme("cookie_session", cookie);
         } else {
             openapi.components = Some(
                 utoipa::openapi::ComponentsBuilder::new()
                     .security_scheme("bearer_token", bearer)
-                    .security_scheme("cookie_session", cookie)
                     .build(),
             );
         }
@@ -91,7 +88,7 @@ impl Modify for OpenApiSecurityConfig {
     nest(
         (path = "/", api = V1API),
     ),
-    components(schemas(Error, ServerHealth, DatabaseHealth, ProcessStats), responses(Error, ServerHealth, DatabaseHealth, ProcessStats)),
+    components(schemas(ErrorDTO, ServerHealth, DatabaseHealth), responses(ErrorDTO, ServerHealth, DatabaseHealth, ProcessStats)),
     tags(),
     modifiers(&NormalizePath, &OpenApiSecurityConfig)
 )]
